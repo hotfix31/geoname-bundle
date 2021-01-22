@@ -1,10 +1,10 @@
 <?php
 
 
-namespace Bordeux\Bundle\GeoNameBundle\Import;
+namespace Hotfix\Bundle\GeoNameBundle\Import;
 
 
-use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
+use Hotfix\Bundle\GeoNameBundle\Entity\Timezone;
 use Doctrine\ORM\EntityManager;
 use GuzzleHttp\Promise\Promise;
 use SplFileObject;
@@ -12,7 +12,7 @@ use SplFileObject;
 /**
  * Class TimeZoneImport
  * @author Chris Bednarczyk <chris@tourradar.com>
- * @package Bordeux\Bundle\GeoNameBundle\Import
+ * @package Hotfix\Bundle\GeoNameBundle\Import
  */
 class TimeZoneImport implements ImportInterface
 {
@@ -67,7 +67,7 @@ class TimeZoneImport implements ImportInterface
         $max = $file->key();
         $file->seek(1); //skip header
 
-        $timezoneRepository = $this->em->getRepository("BordeuxGeoNameBundle:Timezone");
+        $timezoneRepository = $this->em->getRepository("HotfixGeoNameBundle:Timezone");
 
         $pos = -1;
 

@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Bordeux\Bundle\GeoNameBundle\Import;
+namespace Hotfix\Bundle\GeoNameBundle\Import;
 
 
 use GuzzleHttp\Promise\Promise;

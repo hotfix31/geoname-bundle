@@ -1,6 +1,6 @@
 Geonames Bundle
 ===============
-[![Build Status](https://travis-ci.org/bordeux/geoname-bundle.svg?branch=master)](https://travis-ci.org/bordeux/geoname-bundle) [![Coverage Status](https://coveralls.io/repos/github/bordeux/geoname-bundle/badge.svg?branch=master)](https://coveralls.io/github/bordeux/geoname-bundle?branch=master)[![Latest Stable Version](https://poser.pugx.org/bordeux/geoname-bundle/version)](https://packagist.org/packages/bordeux/geoname-bundle)
+[![Build Status](https://travis-ci.org/Hotfix/geoname-bundle.svg?branch=master)](https://travis-ci.org/Hotfix/geoname-bundle) [![Coverage Status](https://coveralls.io/repos/github/Hotfix/geoname-bundle/badge.svg?branch=master)](https://coveralls.io/github/Hotfix/geoname-bundle?branch=master)[![Latest Stable Version](https://poser.pugx.org/Hotfix/geoname-bundle/version)](https://packagist.org/packages/Hotfix/geoname-bundle)
 
 # Introduction
 
@@ -41,7 +41,7 @@ covered worldwide.
 1. Install the bundle using composer:
 
     ```sh
-    composer require bordeux/geoname-bundle
+    composer require Hotfix/geoname-bundle
     ```
 
 
@@ -51,7 +51,7 @@ covered worldwide.
     // AppKernel::registerBundles()
     $bundles = array(
         // ...
-            new Bordeux\Bundle\GeoNameBundle\BordeuxGeoNameBundle(),
+            new Hotfix\Bundle\GeoNameBundle\HotfixGeoNameBundle(),
         // ...
     );
 
@@ -78,7 +78,7 @@ the [geonames.org][1] export (http://download.geonames.org/export/dump)
 Loads a list of all data from [geonames.org][1]
 
 ```sh
-    php bin/console bordeux:geoname:import  --env=prod
+    php bin/console Hotfix:geoname:import  --env=prod
 ```
 
 ### Options
@@ -86,7 +86,7 @@ Loads a list of all data from [geonames.org][1]
 
 ```
 Usage:
-  bordeux:geoname:import [options]
+  Hotfix:geoname:import [options]
 
 Options:
   -a, --archive[=ARCHIVE]                   Archive to GeoNames [default: "http://download.geonames.org/export/dump/allCount

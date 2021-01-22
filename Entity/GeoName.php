@@ -1,537 +1,523 @@
 <?php
 
-namespace Bordeux\Bundle\GeoNameBundle\Entity;
+namespace Hotfix\Bundle\GeoNameBundle\Entity;
 
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * GeoName
- *
  * @ORM\Table(name="geo__name" ,indexes={
  *     @ORM\Index(name="geoname_geoname_search_idx", columns={"name", "country_code"}),
  *     @ORM\Index(name="geoname_feature_code_idx", columns={"feature_code"})
  * })
- * @ORM\Entity(repositoryClass="Bordeux\Bundle\GeoNameBundle\Repository\GeoNameRepository")
+ * @ORM\Entity(repositoryClass="Hotfix\Bundle\GeoNameBundle\Repository\GeoNameRepository")
  */
 class GeoName
 {
     /**
-     * @var int
-     *
      * @ORM\Column(name="id", type="integer")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="NONE")
      */
-    protected $id;
-
+    protected ?int $id = null;
 
     /**
-     * @var string
+     * name of geographical point (utf8) varchar(200)
      *
      * @ORM\Column(name="name", type="string", length=200, nullable=false)
      */
-    protected $name;
+    protected ?string $name = null;
 
     /**
-     * @var string
+     * name of geographical point in plain ascii characters, varchar(200)
      *
      * @ORM\Column(name="ascii_name", type="string", length=200, nullable=true)
      */
-    protected $asciiName;
+    protected ?string $asciiName = null;
 
 
     /**
-     * @var float
      * @ORM\Column(name="latitude", type="float", scale=6, precision=9, nullable=true)
      */
-    protected $latitude;
+    protected ?float $latitude = null;
 
     /**
-     * @var float
-     *
      * @ORM\Column(name="longitude", type="float", scale=6, precision=9, nullable=true)
      */
-    protected $longitude;
-
+    protected ?float $longitude = null;
 
     /**
-     * @var float
-     *
+     * @see http://www.geonames.org/export/codes.html
      * @ORM\Column(name="feature_class", type="string", length=1, nullable=true)
      */
-    protected $featureClass;
+    protected ?string $featureClass = null;
 
     /**
-     * @var float
-     *
+     * @see http://www.geonames.org/export/codes.html
      * @ORM\Column(name="feature_code", type="string", length=10, nullable=true)
      */
-    protected $featureCode;
+    protected ?string $featureCode = null;
 
     /**
-     * @var float
+     * ISO-3166 2-letter country code, 2 characters
      *
      * @ORM\Column(name="country_code", type="string", length=2, nullable=true)
      */
-    protected $countryCode;
-
+    protected ?string $countryCode = null;
 
     /**
-     * @var Country
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\Country")
+     * @ORM\ManyToOne(targetEntity=Country::class)
      * @ORM\JoinColumn(name="country_id", referencedColumnName="id", nullable=true)
      */
-    protected $country;
+    protected ?Country $country = null;
 
     /**
-     * @var float
+     * alternate country codes, comma separated, ISO-3166 2-letter country code, 200 characters
      *
      * @ORM\Column(name="cc2", type="string", length=200, nullable=true)
      */
-    protected $cc2;
+    protected ?string $cc2 = null;
 
     /**
-     * @var Administrative
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\Administrative")
+     * @ORM\ManyToOne(targetEntity=Administrative::class)
      * @ORM\JoinColumn(name="admin1_id", referencedColumnName="id", nullable=true)
      */
-    protected $admin1;
+    protected ?Administrative $admin1 = null;
 
     /**
-     * @var Administrative
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\Administrative")
+     * @ORM\ManyToOne(targetEntity=Administrative::class)
      * @ORM\JoinColumn(name="admin2_id", referencedColumnName="id", nullable=true)
      */
-    protected $admin2;
+    protected ?Administrative $admin2 = null;
 
     /**
-     * @var Administrative
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\Administrative")
+     * @ORM\ManyToOne(targetEntity=Administrative::class)
      * @ORM\JoinColumn(name="admin3_id", referencedColumnName="id", nullable=true)
      */
-    protected $admin3;
+    protected ?Administrative $admin3 = null;
 
     /**
-     * @var Administrative
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\Administrative")
+     * @ORM\ManyToOne(targetEntity=Administrative::class)
      * @ORM\JoinColumn(name="admin4_id", referencedColumnName="id", nullable=true)
      */
-    protected $admin4;
-
+    protected ?Administrative $admin4 = null;
 
     /**
-     * @var int
-     *
      * @ORM\Column(name="population", type="bigint", nullable=true)
      */
-    protected $population;
+    protected ?int $population = null;
 
     /**
-     * @var int
+     * in meters, integer
      *
      * @ORM\Column(name="elevation", type="integer", nullable=true)
      */
-    protected $elevation;
+    protected ?int $elevation = null;
 
     /**
-     * @var integer
+     * digital elevation model, srtm3 or gtopo30, average elevation of 3''x3'' (ca 90mx90m) or 30''x30'' (ca 900mx900m) area in meters, integer. srtm processed by cgiar/ciat.
      *
      * @ORM\Column(name="dem", type="integer", nullable=true)
      */
-    protected $dem;
+    protected ?int $dem = null;
 
     /**
-     * @var Timezone
+     * the iana timezone id
      *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\Timezone")
+     * @ORM\ManyToOne(targetEntity=Timezone::class)
      * @ORM\JoinColumn(name="timezone_id", referencedColumnName="id", nullable=true)
      */
-    protected $timezone;
+    protected ?Timezone $timezone = null;
 
     /**
-     * @var \DateTime
+     * date of last modification in yyyy-MM-dd format
      *
      * @ORM\Column(name="modification_date", type="date", nullable=true)
      */
-    protected $modificationDate;
-
-
-
+    protected ?\DateTimeInterface $modificationDate = null;
 
     /**
-     * @var Hierarchy[]
-     *
-     * @ORM\OneToMany(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\Hierarchy", mappedBy="child")
+     * @ORM\OneToMany(targetEntity=Hierarchy::class, mappedBy="child")
      */
-    protected $parents;
-
+    protected ?Collection $parents = null;
 
     /**
-     * Get id
-     *
-     * @return integer
+     * @return int
      */
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
+     * @param int $id
+     * @return GeoName
+     */
+    public function setId(?int $id): self
+    {
+        $this->id = $id;
+
+        return $this;
+    }
+
+    /**
      * @return string
      */
-    public function getName()
+    public function getName(): ?string
     {
         return $this->name;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
      * @param string $name
      * @return GeoName
      */
-    public function setName($name)
+    public function setName(?string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
      * @return string
      */
-    public function getAsciiName()
+    public function getAsciiName(): ?string
     {
         return $this->asciiName;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
      * @param string $asciiName
      * @return GeoName
      */
-    public function setAsciiName($asciiName)
+    public function setAsciiName(?string $asciiName): self
     {
         $this->asciiName = $asciiName;
+
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return float
+     * @return float|null
      */
-    public function getLatitude()
+    public function getLatitude(): ?float
     {
         return $this->latitude;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param float $latitude
+     * @param float|null $latitude
      * @return GeoName
      */
-    public function setLatitude($latitude)
+    public function setLatitude(?float $latitude): self
     {
         $this->latitude = $latitude;
+
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return float
+     * @return float|null
      */
-    public function getLongitude()
+    public function getLongitude(): ?float
     {
         return $this->longitude;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param float $longitude
+     * @param float|null $longitude
      * @return GeoName
      */
-    public function setLongitude($longitude)
+    public function setLongitude(?float $longitude): self
     {
         $this->longitude = $longitude;
+
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return float
+     * @return string|null
      */
-    public function getFeatureClass()
+    public function getFeatureClass(): ?string
     {
         return $this->featureClass;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param float $featureClass
+     * @param string|null $featureClass
      * @return GeoName
      */
-    public function setFeatureClass($featureClass)
+    public function setFeatureClass(?string $featureClass): self
     {
         $this->featureClass = $featureClass;
+
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return float
+     * @return string|null
      */
-    public function getFeatureCode()
+    public function getFeatureCode(): ?string
     {
         return $this->featureCode;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param float $featureCode
+     * @param string|null $featureCode
      * @return GeoName
      */
-    public function setFeatureCode($featureCode)
+    public function setFeatureCode(?string $featureCode): self
     {
         $this->featureCode = $featureCode;
+
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return float
+     * @return string|null
      */
-    public function getCountryCode()
+    public function getCountryCode(): ?string
     {
         return $this->countryCode;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param float $countryCode
+     * @param string|null $countryCode
      * @return GeoName
      */
-    public function setCountryCode($countryCode)
+    public function setCountryCode(?string $countryCode): self
     {
         $this->countryCode = $countryCode;
+
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return float
+     * @return Country|null
      */
-    public function getCc2()
+    public function getCountry(): ?Country
+    {
+        return $this->country;
+    }
+
+    /**
+     * @param Country|null $country
+     * @return GeoName
+     */
+    public function setCountry(?Country $country): self
+    {
+        $this->country = $country;
+
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getCc2(): ?string
     {
         return $this->cc2;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param float $cc2
+     * @param string|null $cc2
      * @return GeoName
      */
-    public function setCc2($cc2)
+    public function setCc2(?string $cc2): self
     {
         $this->cc2 = $cc2;
+
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return Administrative
+     * @return Administrative|null
      */
-    public function getAdmin1()
+    public function getAdmin1(): ?Administrative
     {
         return $this->admin1;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param Administrative $admin1
+     * @param Administrative|null $admin1
      * @return GeoName
      */
-    public function setAdmin1($admin1)
+    public function setAdmin1(?Administrative $admin1): self
     {
         $this->admin1 = $admin1;
+
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return Administrative
+     * @return Administrative|null
      */
-    public function getAdmin2()
+    public function getAdmin2(): ?Administrative
     {
         return $this->admin2;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param Administrative $admin2
+     * @param Administrative|null $admin2
      * @return GeoName
      */
-    public function setAdmin2($admin2)
+    public function setAdmin2(?Administrative $admin2): self
     {
         $this->admin2 = $admin2;
+
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return Administrative
+     * @return Administrative|null
      */
-    public function getAdmin3()
+    public function getAdmin3(): ?Administrative
     {
         return $this->admin3;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param Administrative $admin3
+     * @param Administrative|null $admin3
      * @return GeoName
      */
-    public function setAdmin3($admin3)
+    public function setAdmin3(?Administrative $admin3): self
     {
         $this->admin3 = $admin3;
+
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return Administrative
+     * @return Administrative|null
      */
-    public function getAdmin4()
+    public function getAdmin4(): ?Administrative
     {
         return $this->admin4;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param Administrative $admin4
+     * @param Administrative|null $admin4
      * @return GeoName
      */
-    public function setAdmin4($admin4)
+    public function setAdmin4(?Administrative $admin4): self
     {
         $this->admin4 = $admin4;
+
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return int
+     * @return int|null
      */
-    public function getPopulation()
+    public function getPopulation(): ?int
     {
         return $this->population;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param int $population
+     * @param int|null $population
      * @return GeoName
      */
-    public function setPopulation($population)
+    public function setPopulation(?int $population): self
     {
         $this->population = $population;
+
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return int
+     * @return int|null
      */
-    public function getElevation()
+    public function getElevation(): ?int
     {
         return $this->elevation;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param int $elevation
+     * @param int|null $elevation
      * @return GeoName
      */
-    public function setElevation($elevation)
+    public function setElevation(?int $elevation): self
     {
         $this->elevation = $elevation;
+
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return int
+     * @return int|null
      */
-    public function getDem()
+    public function getDem(): ?int
     {
         return $this->dem;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param int $dem
+     * @param int|null $dem
      * @return GeoName
      */
-    public function setDem($dem)
+    public function setDem(?int $dem): self
     {
         $this->dem = $dem;
+
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return Timezone
+     * @return Timezone|null
      */
-    public function getTimezone()
+    public function getTimezone(): ?Timezone
     {
         return $this->timezone;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param Timezone $timezone
+     * @param Timezone|null $timezone
      * @return GeoName
      */
-    public function setTimezone($timezone)
+    public function setTimezone(?Timezone $timezone): self
     {
         $this->timezone = $timezone;
+
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return \DateTime
+     * @return \DateTimeInterface|null
      */
-    public function getModificationDate()
+    public function getModificationDate(): ?\DateTimeInterface
     {
         return $this->modificationDate;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param \DateTime $modificationDate
+     * @param \DateTimeInterface|null $modificationDate
      * @return GeoName
      */
-    public function setModificationDate($modificationDate)
+    public function setModificationDate(?\DateTimeInterface $modificationDate): self
     {
         $this->modificationDate = $modificationDate;
+
         return $this;
     }
 
     /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return Country
+     * @return Collection|null
      */
-    public function getCountry()
+    public function getParents(): ?Collection
     {
-        return $this->country;
+        return $this->parents;
     }
 
+    /**
+     * @param Collection|null $parents
+     * @return GeoName
+     */
+    public function setParents(?Collection $parents): self
+    {
+        $this->parents = $parents;
 
-
-
+        return $this;
+    }
 }
-

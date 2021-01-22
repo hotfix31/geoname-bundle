@@ -1,11 +1,11 @@
 <?php
 
 
-namespace Bordeux\Bundle\GeoNameBundle\Import;
+namespace Hotfix\Bundle\GeoNameBundle\Import;
 
 
-use Bordeux\Bundle\GeoNameBundle\Entity\Administrative;
-use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
+use Hotfix\Bundle\GeoNameBundle\Entity\Administrative;
+use Hotfix\Bundle\GeoNameBundle\Entity\Timezone;
 use Doctrine\ORM\EntityManager;
 use GuzzleHttp\Promise\Promise;
 use SplFileObject;
@@ -13,7 +13,7 @@ use SplFileObject;
 /**
  * Class AdministrativeImport
  * @author Chris Bednarczyk <chris@tourradar.com>
- * @package Bordeux\Bundle\GeoNameBundle\Import
+ * @package Hotfix\Bundle\GeoNameBundle\Import
  */
 class AdministrativeImport implements ImportInterface
 {
@@ -68,7 +68,7 @@ class AdministrativeImport implements ImportInterface
         $max = $file->key();
         $file->seek(1); //skip header
 
-        $administrative = $this->em->getRepository("BordeuxGeoNameBundle:Administrative");
+        $administrative = $this->em->getRepository("HotfixGeoNameBundle:Administrative");
 
         $pos = 0;
 

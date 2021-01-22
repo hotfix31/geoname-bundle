@@ -1,10 +1,10 @@
 <?php
 
-namespace Bordeux\Bundle\GeoNameBundle\Tests\Command;
+namespace Hotfix\Bundle\GeoNameBundle\Tests\Command;
 
-use Bordeux\Bundle\GeoNameBundle\Command\ImportCommand;
-use Bordeux\Bundle\GeoNameBundle\Entity\GeoName;
-use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
+use Hotfix\Bundle\GeoNameBundle\Command\ImportCommand;
+use Hotfix\Bundle\GeoNameBundle\Entity\GeoName;
+use Hotfix\Bundle\GeoNameBundle\Entity\Timezone;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -15,7 +15,7 @@ class ImportCommandTest extends WebTestCase
     /**
      * @inheritDoc
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         static::$kernel = static::createKernel();
         static::$kernel->boot();
@@ -26,7 +26,7 @@ class ImportCommandTest extends WebTestCase
         $application = new Application(static::$kernel);
         $application->add(new ImportCommand());
 
-        $command = $application->find('bordeux:geoname:import');
+        $command = $application->find('Hotfix:geoname:import');
         $command->setApplication($application);
 
 
@@ -35,17 +35,14 @@ class ImportCommandTest extends WebTestCase
             '--archive' => 'http://download.geonames.org/export/dump/AX.zip'
         ]);
 
-        $output = new StreamOutput(fopen('php://stdout', 'w', false));;
+        $output = new StreamOutput(fopen('php://stdout', 'w', false));
 
         $result = $command->run($input, $output);
 
-
         $this->assertEquals((int) $result, 0);
-
-
         $geoNameRepo = self::$kernel->getContainer()
             ->get("doctrine")
-            ->getRepository("BordeuxGeoNameBundle:GeoName");
+            ->getRepository("HotfixGeoNameBundle:GeoName");
 
         /** @var GeoName $ytterskaer */
         $ytterskaer = $geoNameRepo->find(630694);
@@ -58,11 +55,7 @@ class ImportCommandTest extends WebTestCase
 
         $timezone = $ytterskaer->getTimezone();
 
-
         $this->assertInstanceOf(Timezone::class, $timezone);
         $this->assertEquals($timezone->getTimezone(), 'Europe/Mariehamn');
     }
-
-
-
 }

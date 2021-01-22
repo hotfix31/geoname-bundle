@@ -1,148 +1,93 @@
 <?php
 
-namespace Bordeux\Bundle\GeoNameBundle\Entity;
+namespace Hotfix\Bundle\GeoNameBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Administrative
- *
  * @ORM\Table(name="geo__administrative")
- * @ORM\Entity(repositoryClass="Bordeux\Bundle\GeoNameBundle\Repository\AdministrativeRepository")
+ * @ORM\Entity(repositoryClass="Hotfix\Bundle\GeoNameBundle\Repository\AdministrativeRepository")
  */
 class Administrative
 {
     /**
-     * @var int
-     *
      * @ORM\Column(name="id", type="integer")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
-    protected $id;
+    protected ?int $id = null;
 
     /**
-     * @var string
-     *
      * @ORM\Column(name="code", type="string", length=30, unique=true)
      */
-    protected $code;
+    protected ?string $code = null;
 
     /**
-     * @var string
+     * name of geographical point (utf8) varchar(200)
      *
      * @ORM\Column(name="name", type="string", length=200)
      */
-    protected $name;
+    protected ?string $name = null;
 
     /**
-     * @var string
+     * name of geographical point in plain ascii characters, varchar(200)
      *
      * @ORM\Column(name="ascii_name", type="string", length=200, nullable=true)
      */
-    protected $asciiName;
+    protected ?string $asciiName = null;
 
     /**
-     * @var GeoName
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName")
+     * @ORM\ManyToOne(targetEntity=GeoName::class)
      * @ORM\JoinColumn(name="geoname_id", referencedColumnName="id", nullable=true)
      */
-    protected $geoName;
+    protected ?GeoName $geoName = null;
 
-
-    /**
-     * Get id
-     *
-     * @return string
-     */
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return string
-     */
-    public function getCode()
+    public function getCode(): ?string
     {
         return $this->code;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param string $code
-     * @return Administrative
-     */
-    public function setCode($code)
+    public function setCode(string $code): self
     {
         $this->code = $code;
         return $this;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return string
-     */
-    public function getName()
+    public function getName(): ?string
     {
         return $this->name;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param string $name
-     * @return Administrative
-     */
-    public function setName($name)
+    public function setName(string $name): self
     {
         $this->name = $name;
         return $this;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return string
-     */
-    public function getAsciiName()
+    public function getAsciiName(): ?string
     {
         return $this->asciiName;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param string $asciiName
-     * @return Administrative
-     */
-    public function setAsciiName($asciiName)
+    public function setAsciiName(string $asciiName): self
     {
         $this->asciiName = $asciiName;
         return $this;
     }
 
-
-
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return GeoName
-     */
-    public function getGeoName()
+    public function getGeoName(): ?GeoName
     {
         return $this->geoName;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param GeoName $geoName
-     * @return Administrative
-     */
-    public function setGeoName($geoName)
+    public function setGeoName(GeoName $geoName): self
     {
         $this->geoName = $geoName;
         return $this;
     }
-
-
 }
-

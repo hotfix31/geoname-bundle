@@ -1,95 +1,59 @@
 <?php
 
-namespace Bordeux\Bundle\GeoNameBundle\Entity;
+namespace Hotfix\Bundle\GeoNameBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Class Hierarchy
- * @author Chris Bednarczyk <chris@tourradar.com>
- * @package Bordeux\Bundle\GeoNameBundle\Entity
- *
  * @ORM\Table(name="geo__name_hierarchy")
- * @ORM\Entity()
+ * @ORM\Entity(repositoryClass="Hotfix\Bundle\GeoNameBundle\Repository\HierarchyRepository")
  */
 class Hierarchy
 {
     /**
-     * @var int
-     *
      * @ORM\Column(name="id", type="integer")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
-    protected $id;
+    protected ?int $id = null;
 
     /**
-     * @var GeoName
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName")
+     * @ORM\ManyToOne(targetEntity=GeoName::class)
      * @ORM\JoinColumn(name="parent_id", referencedColumnName="id", nullable=true, onDelete="CASCADE")
      */
-    protected $parent;
+    protected ?GeoName $parent = null;
 
     /**
-     * @var GeoName
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName", inversedBy="parents")
+     * @ORM\ManyToOne(targetEntity=GeoName, inversedBy="parents")
      * @ORM\JoinColumn(name="child_id", referencedColumnName="id", nullable=true, onDelete="CASCADE")
      */
-    protected $child;
+    protected ?GeoName $child = null;
 
-    /**
-     * Get id
-     *
-     * @return integer
-     */
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     *
-     * @return GeoName
-     */
-    public function getParent()
+    public function getParent(): ?GeoName
     {
         return $this->parent;
     }
 
-    /**
-     *
-     * @param GeoName $parent
-     * @return Hierarchy
-     */
-    public function setParent(GeoName $parent)
+    public function setParent(GeoName $parent): self
     {
         $this->parent = $parent;
         return $this;
     }
 
-    /**
-     *
-     * @return GeoName
-     */
-    public function getChild()
+    public function getChild(): ?GeoName
     {
         return $this->child;
     }
 
-    /**
-     *
-     * @param GeoName $child
-     * @return Hierarchy
-     */
-    public function setChild(GeoName $child)
+    public function setChild(GeoName $child): self
     {
         $this->child = $child;
         return $this;
     }
-
-
-
 }
 

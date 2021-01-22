@@ -21,7 +21,7 @@ class AppKernel extends Kernel
         $bundles = [
             new Symfony\Bundle\FrameworkBundle\FrameworkBundle(),
             new Doctrine\Bundle\DoctrineBundle\DoctrineBundle(),
-            new Bordeux\Bundle\GeoNameBundle\BordeuxGeoNameBundle(),
+            new Hotfix\Bundle\GeoNameBundle\HotfixGeoNameBundle(),
         ];
 
         return $bundles;

@@ -1,507 +1,295 @@
 <?php
 
-namespace Bordeux\Bundle\GeoNameBundle\Entity;
+namespace Hotfix\Bundle\GeoNameBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * GeoName
- *
  * @ORM\Table(name="geo__country" ,indexes={
  *     @ORM\Index(name="geoname_country_search_idx", columns={"name", "iso"})
  * })
- * @ORM\Entity(repositoryClass="Bordeux\Bundle\GeoNameBundle\Repository\CountryRepository")
+ * @ORM\Entity(repositoryClass="Hotfix\Bundle\GeoNameBundle\Repository\CountryRepository")
  */
 class Country
 {
     /**
-     * @var int
-     *
      * @ORM\Column(name="id", type="integer")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="NONE")
      */
-    protected $id;
+    protected ?int $id = null;
 
     /**
-     * @var string
-     *
      * @ORM\Column(name="iso", type="string", length=2, nullable=false)
      */
-    protected $iso;
+    protected ?string $iso = null;
 
     /**
-     * @var string
-     *
      * @ORM\Column(name="iso3", type="string", length=3, nullable=false)
      */
-    protected $iso3;
+    protected ?string $iso3 = null;
 
     /**
-     * @var integer
-     *
      * @ORM\Column(name="iso_numeric", type="integer", length=3, nullable=false)
      */
-    protected $isoNumeric;
-
+    protected ?int $isoNumeric = null;
 
     /**
-     * @var string
-     *
      * @ORM\Column(name="fips", type="string", length=2, nullable=true)
      */
-    protected $fips;
-
+    protected ?string $fips = null;
 
     /**
-     * @var string
-     *
      * @ORM\Column(name="name", type="string", length=255, nullable=false)
      */
-    protected $name;
+    protected ?string $name = null;
 
     /**
-     * @var string
-     *
      * @ORM\Column(name="capital", type="string", length=255, nullable=true)
      */
-    protected $capital;
-
+    protected ?string $capital = null;
 
     /**
-     * @var integer
-     *
      * @ORM\Column(name="area", type="bigint", nullable=false)
      */
-    protected $area;
+    protected ?int $area = null;
 
     /**
-     * @var integer
-     *
      * @ORM\Column(name="population", type="bigint", nullable=false)
      */
-    protected $population;
-
+    protected ?int $population = null;
 
     /**
-     * @var string
-     *
      * @ORM\Column(name="tld", type="string", length=15, nullable=true)
      */
-    protected $tld;
+    protected ?string $tld = null;
 
     /**
-     * @var string
-     *
      * @ORM\Column(name="currency", type="string", length=3, nullable=true)
      */
-    protected $currency;
-
+    protected ?string $currency = null;
 
     /**
-     * @var string
-     *
      * @ORM\Column(name="currency_name", type="string", length=50, nullable=true)
      */
-    protected $currencyName;
-
+    protected ?string $currencyName = null;
 
     /**
-     * @var integer
-     *
      * @ORM\Column(name="phone_prefix", type="integer", nullable=true)
      */
-    protected $phonePrefix;
-
+    protected ?string $phonePrefix = null;
 
     /**
-     * @var string
-     *
      * @ORM\Column(name="postal_format", type="text", nullable=true)
      */
-    protected $postalFormat;
-
+    protected ?string $postalFormat = null;
 
     /**
-     * @var string
-     *
      * @ORM\Column(name="postal_regex", type="text", nullable=true)
      */
-    protected $postalRegex;
-
+    protected ?string $postalRegex = null;
 
     /**
-     * @var array
-     *
-     * @ORM\Column(name="languages", type="json_array", nullable=true)
+     * @ORM\Column(name="languages", type="json", nullable=true)
      */
-    protected $languages;
+    protected ?array $languages = null;
 
     /**
-     * @var GeoName
-     *
-     * @ORM\ManyToOne(targetEntity="Bordeux\Bundle\GeoNameBundle\Entity\GeoName")
+     * @ORM\ManyToOne(targetEntity=GeoName::class)
      * @ORM\JoinColumn(name="geoname_id", referencedColumnName="id", nullable=true)
      */
-    protected $geoName;
+    protected ?GeoName $geoName = null;
 
-    /**
-     * Country constructor.
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param int $id
-     */
     public function __construct($id = null)
     {
         $this->id = $id;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return int
-     */
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param int $id
-     * @return Country
-     */
-    public function setId($id)
+    public function setId(int $id): self
     {
         $this->id = $id;
         return $this;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return string
-     */
-    public function getIso()
+    public function getIso(): string
     {
         return $this->iso;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param string $iso
-     * @return Country
-     */
-    public function setIso($iso)
+    public function setIso(string $iso): self
     {
         $this->iso = $iso;
         return $this;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return string
-     */
-    public function getIso3()
+    public function getIso3(): ?string
     {
         return $this->iso3;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param string $iso3
-     * @return Country
-     */
-    public function setIso3($iso3)
+    public function setIso3(string $iso3): self
     {
         $this->iso3 = $iso3;
         return $this;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return int
-     */
-    public function getIsoNumeric()
+    public function getIsoNumeric(): ?int
     {
         return $this->isoNumeric;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param int $isoNumeric
-     * @return Country
-     */
-    public function setIsoNumeric($isoNumeric)
+    public function setIsoNumeric(int $isoNumeric): self
     {
         $this->isoNumeric = $isoNumeric;
         return $this;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return string
-     */
-    public function getFips()
+    public function getFips(): ?string
     {
         return $this->fips;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param string $fips
-     * @return Country
-     */
-    public function setFips($fips)
+    public function setFips(string $fips): self
     {
         $this->fips = $fips;
         return $this;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return string
-     */
-    public function getName()
+    public function getName(): ?string
     {
         return $this->name;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param string $name
-     * @return Country
-     */
-    public function setName($name)
+    public function setName(string $name): self
     {
         $this->name = $name;
         return $this;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return int
-     */
-    public function getArea()
+    public function getArea(): ?int
     {
         return $this->area;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return string
-     */
-    public function getCapital()
+    public function setArea(string $area): self
+    {
+        $this->area = $area;
+
+        return $this;
+    }
+
+    public function getCapital(): ?string
     {
         return $this->capital;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param string $capital
-     * @return Country
-     */
-    public function setCapital($capital)
+    public function setCapital(string $capital): self
     {
         $this->capital = $capital;
         return $this;
     }
 
-
-
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param int $area
-     * @return Country
-     */
-    public function setArea($area)
-    {
-        $this->area =  (int) $area;
-        return $this;
-    }
-
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return int
-     */
-    public function getPopulation()
+    public function getPopulation(): ?int
     {
         return $this->population;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param int $population
-     * @return Country
-     */
-    public function setPopulation($population)
+    public function setPopulation(int $population): self
     {
-        $this->population = (int)  $population;
+        $this->population = $population;
         return $this;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return string
-     */
-    public function getTld()
+    public function getTld(): ?string
     {
         return $this->tld;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param string $tld
-     * @return Country
-     */
-    public function setTld($tld)
+    public function setTld(string $tld): self
     {
         $this->tld = $tld;
         return $this;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return string
-     */
-    public function getCurrency()
+    public function getCurrency(): ?string
     {
         return $this->currency;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param string $currency
-     * @return Country
-     */
-    public function setCurrency($currency)
+    public function setCurrency(string $currency): self
     {
         $this->currency = $currency;
         return $this;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return string
-     */
-    public function getCurrencyName()
+    public function getCurrencyName(): ?string
     {
         return $this->currencyName;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param string $currencyName
-     * @return Country
-     */
-    public function setCurrencyName($currencyName)
+    public function setCurrencyName(string $currencyName): self
     {
         $this->currencyName = $currencyName;
         return $this;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return int
-     */
-    public function getPhonePrefix()
+    public function getPhonePrefix(): ?int
     {
         return $this->phonePrefix;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param int $phonePrefix
-     * @return Country
-     */
-    public function setPhonePrefix($phonePrefix)
+    public function setPhonePrefix(int $phonePrefix): self
     {
         $this->phonePrefix = $phonePrefix;
         return $this;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return string
-     */
-    public function getPostalFormat()
+    public function getPostalFormat(): ?string
     {
         return $this->postalFormat;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param string $postalFormat
-     * @return Country
-     */
-    public function setPostalFormat($postalFormat)
+    public function setPostalFormat(string $postalFormat): self
     {
         $this->postalFormat = $postalFormat;
         return $this;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return string
-     */
-    public function getPostalRegex()
+    public function getPostalRegex(): ?string
     {
         return $this->postalRegex;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param string $postalRegex
-     * @return Country
-     */
-    public function setPostalRegex($postalRegex)
+    public function setPostalRegex(string $postalRegex): self
     {
         $this->postalRegex = $postalRegex;
         return $this;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return array
-     */
-    public function getLanguages()
+    public function getLanguages(): ?array
     {
         return $this->languages;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param array $languages
-     * @return Country
-     */
-    public function setLanguages($languages)
+    public function setLanguages(array $languages): self
     {
         $this->languages = $languages;
         return $this;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @return GeoName
-     */
-    public function getGeoName()
+    public function getGeoName(): ?GeoName
     {
         return $this->geoName;
     }
 
-    /**
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param GeoName $geoName
-     * @return Country
-     */
-    public function setGeoName($geoName)
+    public function setGeoName(GeoName $geoName): self
     {
         $this->geoName = $geoName;
         return $this;
     }
-
-
-
-
-
-
-
 }
-

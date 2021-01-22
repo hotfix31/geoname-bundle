@@ -1,10 +1,10 @@
 <?php
 
 
-namespace Bordeux\Bundle\GeoNameBundle\Import;
+namespace Hotfix\Bundle\GeoNameBundle\Import;
 
 
-use Bordeux\Bundle\GeoNameBundle\Entity\Timezone;
+use Hotfix\Bundle\GeoNameBundle\Entity\Timezone;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\ORM\EntityManager;
 use GuzzleHttp\Promise\Promise;
@@ -13,7 +13,7 @@ use SplFileObject;
 /**
  * Class GeoNameImport
  * @author Chris Bednarczyk <chris@tourradar.com>
- * @package Bordeux\Bundle\GeoNameBundle\Import
+ * @package Hotfix\Bundle\GeoNameBundle\Import
  */
 class GeoNameImport implements ImportInterface
 {
@@ -74,15 +74,15 @@ class GeoNameImport implements ImportInterface
         $fieldsNames = $this->getFieldNames();
 
         $geoNameTableName = $this->em
-            ->getClassMetadata("BordeuxGeoNameBundle:GeoName")
+            ->getClassMetadata("HotfixGeoNameBundle:GeoName")
             ->getTableName();
 
         $timezoneTableName = $this->em
-            ->getClassMetadata("BordeuxGeoNameBundle:Timezone")
+            ->getClassMetadata("HotfixGeoNameBundle:Timezone")
             ->getTableName();
 
         $administrativeTableName = $this->em
-            ->getClassMetadata("BordeuxGeoNameBundle:Administrative")
+            ->getClassMetadata("HotfixGeoNameBundle:Administrative")
             ->getTableName();
 
 
@@ -175,7 +175,7 @@ class GeoNameImport implements ImportInterface
 
         }
 
-        !empty($buffer) && $this->save($buffer);;
+        !empty($buffer) && $this->save($buffer);
         $connection->exec('COMMIT');
 
         return true;
@@ -234,7 +234,7 @@ class GeoNameImport implements ImportInterface
      */
     public function getFieldNames()
     {
-        $metaData = $this->em->getClassMetadata("BordeuxGeoNameBundle:GeoName");
+        $metaData = $this->em->getClassMetadata("HotfixGeoNameBundle:GeoName");
 
         $result = [];
 
