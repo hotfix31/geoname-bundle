@@ -1,31 +1,22 @@
 services:
-    hotfix.geoname.import.timezone:
-        class: Hotfix\Bundle\GeoNameBundle\Import\TimeZoneImport
-        arguments: ["@doctrine.orm.default_entity_manager"]
-        public: true
+    _defaults:
+        autowire: true
 
-    hotfix.geoname.import.administrative:
-        class: Hotfix\Bundle\GeoNameBundle\Import\AdministrativeImport
-        arguments: ["@doctrine.orm.default_entity_manager"]
-        public: true
+    Hotfix\Bundle\GeoNameBundle\Service\Import\:
+        resource: '../../Service/Import/*'
+        tags: [hotfix.geoname.import]
 
-    hotfix.geoname.import.geoname:
-        class: Hotfix\Bundle\GeoNameBundle\Import\GeoNameImport
-        arguments: ["@doctrine.orm.default_entity_manager"]
-        public: true
+    Hotfix\Bundle\GeoNameBundle\Service\Importer:
+        arguments:
+            $imports: !tagged_iterator hotfix.geoname.import
 
-    hotfix.geoname.import.country:
-        class: Hotfix\Bundle\GeoNameBundle\Import\CountryImport
-        arguments: ["@doctrine.orm.default_entity_manager"]
-        public: true
+    Hotfix\Bundle\GeoNameBundle\Service\Downloader:
 
-    hotfix.geoname.import.hierarchy:
-        class: Hotfix\Bundle\GeoNameBundle\Import\HierarchyImport
-        arguments: ["@doctrine.orm.default_entity_manager"]
-        public: true
+    Hotfix\Bundle\GeoNameBundle\Command\ImportCommand:
+        arguments:
+            $cacheDir: '%kernel.cache_dir%'
+        tags: [console.command]
 
-    #auto register all commands
-    hotfix.geoname.command.import:
-        class: Hotfix\Bundle\GeoNameBundle\Command\ImportCommand
-        tags:
-              - { name: console.command }
+    Hotfix\Bundle\GeoNameBundle\Repository\:
+        resource: '../../Repository/*'
+        tags: [doctrine.repository_service]

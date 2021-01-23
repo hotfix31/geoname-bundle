@@ -2,40 +2,29 @@
 
 namespace Hotfix\Bundle\GeoNameBundle\Command;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Promise\Promise;
-use GuzzleHttp\Psr7\Uri;
-use Hotfix\Bundle\GeoNameBundle\Import\ImportInterface;
 use Hotfix\Bundle\GeoNameBundle\Service\Downloader;
+use Hotfix\Bundle\GeoNameBundle\Service\Importer;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
-use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
-class ImportCommand extends Command implements ContainerAwareInterface
+class ImportCommand extends Command
 {
-    use ContainerAwareTrait;
-
-    /**
-     *
-     */
     const PROGRESS_FORMAT = '%current%/%max% [%bar%] %percent:3s%% %elapsed:6s%/%estimated:-6s% Mem: %memory:6s% %message%';
 
     private Downloader $downloader;
+    private Importer $importer;
+    private string $cacheDir;
 
-    public function __construct(Downloader $downloader, string $name = null)
+    public function __construct(Downloader $downloader, Importer $importer, string $cacheDir, string $name = null)
     {
         parent::__construct($name);
 
         $this->downloader = $downloader;
-    }
-
-    private function getContainer()
-    {
-        return $this->container;
+        $this->importer = $importer;
+        $this->cacheDir = $cacheDir;
     }
 
     protected function configure()
@@ -54,7 +43,7 @@ class ImportCommand extends Command implements ContainerAwareInterface
                 't',
                 InputOption::VALUE_OPTIONAL,
                 'Timezones file',
-                'http://download.geonames.org/export/dump/timeZones.txt'
+                'https://download.geonames.org/export/dump/timeZones.txt'
             )
             ->addOption(
                 'admin1-codes',
@@ -129,9 +118,9 @@ class ImportCommand extends Command implements ContainerAwareInterface
             ->setDescription('Import GeoNames');
     }
 
-    protected function processDownload(InputInterface $input, OutputInterface $output, string $downloadDir): void
+    protected function processDownload(InputInterface $input, OutputInterface $output, string $downloadDir): iterable
     {
-        $fields = ['timezones', 'country-info', 'admin1-codes', 'admin2-codes', 'geoname', 'country', 'hierarchy'];
+        $fields = ['timezones'/*, 'country-info', 'admin1-codes', 'admin2-codes', 'geoname', 'country', 'hierarchy'*/];
         foreach ($fields as $field) {
             if ($input->hasOption('skip-'.$field) && $input->getOption('skip-'.$field)) {
                 continue;
@@ -142,14 +131,14 @@ class ImportCommand extends Command implements ContainerAwareInterface
 
             $this->downloadWithProgressBar($url, $file, $output);
             $output->writeln('');
+
+            yield $field => $file;
         }
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $downloadDir = $input->getOption('download-dir')
-            ?: $this->getContainer()->getParameter('kernel.cache_dir').DIRECTORY_SEPARATOR.'geoname';
-
+        $downloadDir = $input->getOption('download-dir') ?: $this->cacheDir.DIRECTORY_SEPARATOR.'geoname';
         if (!file_exists($downloadDir) && !mkdir($downloadDir, 0700, true) && !is_dir($downloadDir)) {
             $output->writeln('<error>Error on create download directory. ('.$downloadDir.')</error>');
             return 15;
@@ -161,10 +150,13 @@ class ImportCommand extends Command implements ContainerAwareInterface
         }
 
         $downloadDir = realpath($downloadDir);
-        $this->processDownload($input, $output, $downloadDir);
+        foreach ($this->processDownload($input, $output, $downloadDir) as $field => $file) {
+            $this->importWithProgressBar($field, $file, $output);
+            $output->writeln('');
+        }
 
         return 0;
-        $this->importWithProgressBar(
+        /*$this->importWithProgressBar(
             $this->getContainer()->get("Hotfix.geoname.import.timezone"),
             $timezonesLocal,
             "Importing timezones",
@@ -284,56 +276,45 @@ class ImportCommand extends Command implements ContainerAwareInterface
         $output->writeln("Imported successfully! Thank you :) ");
 
         return 0;
-
+*/
     }
 
-    /**
-     * @param ImportInterface $importer
-     * @param string $file
-     * @param string $message
-     * @param OutputInterface $output
-     * @param int $steps
-     * @return \GuzzleHttp\Promise\Promise|\GuzzleHttp\Promise\PromiseInterface
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     */
-    public function importWithProgressBar(
-        ImportInterface $importer,
-        $file,
-        $message,
-        OutputInterface $output,
-        $steps = 100
-    ) {
-        $progress = new ProgressBar($output, $steps);
+    public function getProgressBar(OutputInterface $output): ProgressBar
+    {
+        $progress = new ProgressBar($output, 100);
         $progress->setFormat(self::PROGRESS_FORMAT);
-        $progress->setMessage($message);
         $progress->setRedrawFrequency(1);
+
+        return $progress;
+    }
+
+    public function importWithProgressBar(string $importType, string $filename, OutputInterface $output): void
+    {
+        $progress = $this->getProgressBar($output);
+        $progress->setMessage("Import {$importType}");
         $progress->start();
 
-        return $importer->import(
-            $file,
-            function ($percent) use ($progress, $steps) {
-                $progress->setProgress((int)($percent * $steps));
-            }
-        )->then(
-            function () use ($progress) {
-                $progress->finish();
+        $this->importer->import(
+            $importType,
+            new \SplFileObject($filename, 'r'),
+            function ($percent) use ($progress) {
+                $progress->setProgress((int)($percent * 100));
             }
         );
-    }
 
+        $progress->finish();
+    }
 
     public function downloadWithProgressBar(string $url, string $saveAs, OutputInterface $output): void
     {
-        if (file_exists($saveAs)) {
+        /*if (file_exists($saveAs)) {
             $output->writeln($saveAs." exists in the cache.");
 
             return;
-        }
+        }*/
 
-        $progress = new ProgressBar($output, 100);
-        $progress->setFormat(self::PROGRESS_FORMAT);
-        $progress->setMessage("Start downloading {$url}");
-        $progress->setRedrawFrequency(1);
+        $progress = $this->getProgressBar($output);
+        $progress->setMessage("Download {$url}");
         $progress->start();
 
         $this->downloader->download(

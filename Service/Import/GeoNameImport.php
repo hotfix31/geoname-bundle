@@ -1,46 +1,19 @@
 <?php
 
+namespace Hotfix\Bundle\GeoNameBundle\Service\Import;
 
-namespace Hotfix\Bundle\GeoNameBundle\Import;
-
-
-use Hotfix\Bundle\GeoNameBundle\Entity\Timezone;
 use Doctrine\DBAL\Query\QueryBuilder;
-use Doctrine\ORM\EntityManager;
 use GuzzleHttp\Promise\Promise;
-use SplFileObject;
 
-/**
- * Class GeoNameImport
- * @author Chris Bednarczyk <chris@tourradar.com>
- * @package Hotfix\Bundle\GeoNameBundle\Import
- */
-class GeoNameImport implements ImportInterface
+class GeoNameImport extends ImportAbstract
 {
-
-    /**
-     * @var EntityManager
-     */
-    protected $em;
-
-    /**
-     * TimeZoneImport constructor.
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param EntityManager $em
-     */
-    public function __construct(EntityManager $em)
-    {
-        $this->em = $em;
-    }
-
-
     /**
      * @param  string $filePath
      * @param callable|null $progress
      * @return Promise|\GuzzleHttp\Promise\PromiseInterface
      * @author Chris Bednarczyk <chris@tourradar.com>
      */
-    public function import($filePath, callable $progress = null)
+    public function import(\SplFileObject $file, ?callable $progress = null)
     {
         $self = $this;
         /** @var Promise $promise */
@@ -262,6 +235,11 @@ class GeoNameImport implements ImportInterface
             return 'NULL';
         }
         return $this->em->getConnection()->quote($val);
+    }
+
+    public function supports(string $support): bool
+    {
+        return false;
     }
 
 }

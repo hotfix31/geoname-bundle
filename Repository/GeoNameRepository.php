@@ -3,6 +3,7 @@
 namespace Hotfix\Bundle\GeoNameBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Hotfix\Bundle\GeoNameBundle\Entity\GeoName;
 
 /**

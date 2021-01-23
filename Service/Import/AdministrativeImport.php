@@ -1,45 +1,20 @@
 <?php
 
+namespace Hotfix\Bundle\GeoNameBundle\Service\Import;
 
-namespace Hotfix\Bundle\GeoNameBundle\Import;
-
-
-use Hotfix\Bundle\GeoNameBundle\Entity\Timezone;
-use Doctrine\ORM\EntityManager;
+use Hotfix\Bundle\GeoNameBundle\Entity\Administrative;
 use GuzzleHttp\Promise\Promise;
 use SplFileObject;
 
-/**
- * Class TimeZoneImport
- * @author Chris Bednarczyk <chris@tourradar.com>
- * @package Hotfix\Bundle\GeoNameBundle\Import
- */
-class TimeZoneImport implements ImportInterface
+class AdministrativeImport extends ImportAbstract
 {
-
-    /**
-     * @var EntityManager
-     */
-    protected $em;
-
-    /**
-     * TimeZoneImport constructor.
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param EntityManager $em
-     */
-    public function __construct(EntityManager $em)
-    {
-        $this->em = $em;
-    }
-
-
     /**
      * @param  string $filePath
      * @param callable|null $progress
      * @return Promise|\GuzzleHttp\Promise\PromiseInterface
      * @author Chris Bednarczyk <chris@tourradar.com>
      */
-    public function import($filePath, callable $progress = null)
+    public function import(\SplFileObject $file, ?callable $progress = null)
     {
         $self = $this;
         /** @var Promise $promise */
@@ -67,34 +42,33 @@ class TimeZoneImport implements ImportInterface
         $max = $file->key();
         $file->seek(1); //skip header
 
-        $timezoneRepository = $this->em->getRepository("HotfixGeoNameBundle:Timezone");
+        $administrative = $this->em->getRepository("HotfixGeoNameBundle:Administrative");
 
-        $pos = -1;
+        $pos = 0;
 
         foreach ($file as $row) {
-            if($pos == -1){
-                $pos++;
-                continue;
-            }
             $row = array_map('trim',$row);
             list(
-                $countryCode,
-                $timezone,
-                $gmtOffset,
-                $dstOffset,
-                $rawOffset
+                $code,
+                $name,
+                $asciiName,
+                $geoNameId
                 ) = $row;
 
 
-            $object = $timezoneRepository->findOneBy(['timezone' => $timezone]) ?: new Timezone();
-            $object->setTimezone($timezone);
-            $object->setCountryCode($countryCode);
-            $object->setGmtOffset((float) $gmtOffset);
-            $object->setDstOffset((float) $dstOffset);
-            $object->setRawOffset((float) $rawOffset);
+            $object = $administrative->findOneBy(['code' => $code]) ?: new Administrative();
+            $object->setCode($code);
+            $object->setName($name);
+            $object->setAsciiName($asciiName);
 
             !$object->getId() && $this->em->persist($object);
+
             is_callable($progress) && $progress(($pos++) / $max);
+
+            if($pos % 10000){
+                $this->em->flush();
+                $this->em->clear();
+            }
         }
 
         $this->em->flush();
@@ -103,4 +77,8 @@ class TimeZoneImport implements ImportInterface
         return true;
     }
 
+    public function supports(string $support): bool
+    {
+        return false;
+    }
 }

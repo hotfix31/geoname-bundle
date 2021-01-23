@@ -1,47 +1,20 @@
 <?php
 
+namespace Hotfix\Bundle\GeoNameBundle\Service\Import;
 
-namespace Hotfix\Bundle\GeoNameBundle\Import;
-
-
-use Hotfix\Bundle\GeoNameBundle\Entity\Administrative;
 use Hotfix\Bundle\GeoNameBundle\Entity\Country;
-use Hotfix\Bundle\GeoNameBundle\Entity\Timezone;
-use Doctrine\ORM\EntityManager;
 use GuzzleHttp\Promise\Promise;
 use SplFileObject;
 
-/**
- * Class CountryImport
- * @author Chris Bednarczyk <chris@tourradar.com>
- * @package Hotfix\Bundle\GeoNameBundle\Import
- */
-class CountryImport implements ImportInterface
+class CountryImport extends ImportAbstract
 {
-
-    /**
-     * @var EntityManager
-     */
-    protected $em;
-
-    /**
-     * TimeZoneImport constructor.
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     * @param EntityManager $em
-     */
-    public function __construct(EntityManager $em)
-    {
-        $this->em = $em;
-    }
-
-
     /**
      * @param  string $filePath
      * @param callable|null $progress
      * @return Promise|\GuzzleHttp\Promise\PromiseInterface
      * @author Chris Bednarczyk <chris@tourradar.com>
      */
-    public function import($filePath, callable $progress = null)
+    public function import(\SplFileObject $file, ?callable $progress = null)
     {
         $self = $this;
         /** @var Promise $promise */
@@ -183,6 +156,11 @@ UpdateSelect;
 
 
         return true;
+    }
+
+    public function supports(string $support): bool
+    {
+        return false;
     }
 
 }

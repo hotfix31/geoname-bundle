@@ -13,7 +13,7 @@ class Downloader
         $this->httpClient = $httpClient;
     }
 
-    public function download(string $url, string $saveAs, ?callable $progress = null): iterable
+    public function download(string $url, string $saveAs, ?callable $progress = null): void
     {
         $options = [];
         if ($progress && is_callable($progress)) {
@@ -24,8 +24,9 @@ class Downloader
 
         $request = $this->httpClient->request('GET', $url, $options);
         foreach ($this->httpClient->stream($request) as $chunk => $response) {
-            file_put_contents($saveAs, $response->getContent());
-            yield $response;
+            if ($response->isLast()) {
+                file_put_contents($saveAs, $chunk->getContent());
+            }
         }
     }
 }

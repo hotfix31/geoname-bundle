@@ -1,14 +1,8 @@
 <?php
 
+namespace Hotfix\Bundle\GeoNameBundle\Service\Import;
 
-namespace Hotfix\Bundle\GeoNameBundle\Import;
-
-
-use Hotfix\Bundle\GeoNameBundle\Entity\Timezone;
-use Doctrine\DBAL\Query\QueryBuilder;
-use Doctrine\ORM\EntityManager;
 use GuzzleHttp\Promise\Promise;
-use SplFileObject;
 
 /**
  * Class GeoNameImport
@@ -17,9 +11,6 @@ use SplFileObject;
  */
 class HierarchyImport extends GeoNameImport
 {
-
-
-
     /**
      * @param string $filePath
      * @param callable|null $progress
@@ -109,6 +100,11 @@ class HierarchyImport extends GeoNameImport
         $connection->exec('COMMIT');
 
         return true;
+    }
+
+    public function supports(string $support): bool
+    {
+        return false;
     }
 
 
