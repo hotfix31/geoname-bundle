@@ -9,6 +9,7 @@ use Hotfix\Bundle\GeoNameBundle\Entity\Timezone;
 /**
  * @method Timezone|null find($id, $lockMode = null, $lockVersion = null)
  * @method Timezone|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Timezone|null findOneByTimezone(string $timezone, array $orderBy = null)
  * @method Timezone[]    findAll()
  * @method Timezone[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */

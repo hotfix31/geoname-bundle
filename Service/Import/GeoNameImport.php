@@ -2,244 +2,194 @@
 
 namespace Hotfix\Bundle\GeoNameBundle\Service\Import;
 
-use Doctrine\DBAL\Query\QueryBuilder;
-use GuzzleHttp\Promise\Promise;
+use Hotfix\Bundle\GeoNameBundle\Entity\Administrative;
+use Hotfix\Bundle\GeoNameBundle\Entity\Country;
+use Hotfix\Bundle\GeoNameBundle\Entity\GeoName;
+use Hotfix\Bundle\GeoNameBundle\Entity\Timezone;
+use Hotfix\Bundle\GeoNameBundle\Repository\GeoNameRepository;
+use League\Csv\Reader;
+use League\Csv\Statement;
+use League\Csv\TabularDataReader;
 
 class GeoNameImport extends ImportAbstract
 {
-    /**
-     * @param  string $filePath
-     * @param callable|null $progress
-     * @return Promise|\GuzzleHttp\Promise\PromiseInterface
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     */
-    public function import(\SplFileObject $file, ?callable $progress = null)
+    protected ?\SplFileObject $originalFile = null;
+    protected ?GeoNameRepository $repository = null;
+    protected array $adminReference = [];
+    protected array $countryReference = [];
+    protected array $timezoneReference = [];
+    protected int $flushModulo = 100;
+
+    public function getCsvReader(\SplFileObject $file): TabularDataReader
     {
-        $self = $this;
-        /** @var Promise $promise */
-        $promise = (new Promise(function () use ($filePath, $progress, $self, &$promise) {
-            $promise->resolve(
-                $self->_import($filePath, $progress)
+        $zip = new \ZipArchive();
+        $zip->open($file->getRealPath());
+        $content = $zip->getFromName($file->getBasename('.zip').'.txt');
+
+        $temp = new \SplTempFileObject();
+        $temp->fwrite($content);
+
+        $csv = Reader::createFromFileObject($temp);
+        $csv->setDelimiter("\t");
+        $csv->setHeaderOffset(null);
+        $csv->skipEmptyRecords();
+
+        return Statement::create()
+            ->process($csv,
+                [
+                    'geoNameId',
+                    'name',
+                    'asciiName',
+                    'alternatenames',
+                    'latitude',
+                    'longitude',
+                    'featureClass',
+                    'featureCode',
+                    'countryCode',
+                    'cc2',
+                    'admin1Code',
+                    'admin2Code',
+                    'admin3Code',
+                    'admin4Code',
+                    'population',
+                    'elevation',
+                    'dem',
+                    'timezone',
+                    'modificationDate',
+                ]
             );
-        }));
-
-        return $promise;
-    }
-
-    /**
-     * @param string $filePath
-     * @param callable|null $progress
-     * @return bool
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     */
-    protected function _import($filePath, callable $progress = null)
-    {
-
-        $avrOneLineSize = 29.4;
-        $batchSize = 10000;
-
-        $connection = $this->em->getConnection();
-
-        $fileInside = basename($filePath, ".zip") . '.txt';
-        $handler = fopen("zip://{$filePath}#{$fileInside}", 'r');
-        $max = (int) (filesize($filePath) / $avrOneLineSize);
-
-        $fieldsNames = $this->getFieldNames();
-
-        $geoNameTableName = $this->em
-            ->getClassMetadata("HotfixGeoNameBundle:GeoName")
-            ->getTableName();
-
-        $timezoneTableName = $this->em
-            ->getClassMetadata("HotfixGeoNameBundle:Timezone")
-            ->getTableName();
-
-        $administrativeTableName = $this->em
-            ->getClassMetadata("HotfixGeoNameBundle:Administrative")
-            ->getTableName();
-
-
-        $dbType = $connection->getDatabasePlatform()->getName();
-
-        $connection->exec("START TRANSACTION");
-
-        $pos = 0;
-
-        $buffer = [];
-
-        $queryBuilder = $connection->createQueryBuilder()
-            ->insert($geoNameTableName);
-
-        while (!feof($handler)) {
-            $csv = fgetcsv($handler, null, "\t");
-            if (!is_array($csv)) {
-                continue;
-            }
-            if (!isset($csv[0]) || !is_numeric($csv[0])) {
-                continue;
-            }
-
-            $row = array_map('trim', $csv);
-
-            list(
-                $geoNameId,
-                $name,
-                $asciiName,
-                $alternateNames,
-                $latitude,
-                $longitude,
-                $featureClass,
-                $featureCode,
-                $countryCode,
-                $cc2,
-                $admin1Code,
-                $admin2Code,
-                $admin3Code,
-                $admin4Code,
-                $population,
-                $elevation,
-                $dem,
-                $timezone,
-                $modificationDate
-                ) = $row;
-
-
-            if (!preg_match('/^\d{4}\-\d{2}-\d{2}$/', $modificationDate)) {
-                continue;
-            }
-
-
-            $data = [
-                $fieldsNames['id'] => (int)$geoNameId, //must be as first!
-                $fieldsNames['name'] => $this->e($name),
-                $fieldsNames['asciiName'] => $this->e($asciiName),
-                $fieldsNames['latitude'] => $this->e($latitude),
-                $fieldsNames['longitude'] => $this->e($longitude),
-                $fieldsNames['featureClass'] => $this->e($featureClass),
-                $fieldsNames['featureCode'] => $this->e($featureCode),
-                $fieldsNames['countryCode'] => $this->e($countryCode),
-                $fieldsNames['cc2'] => $this->e($cc2),
-                $fieldsNames['population'] => $this->e($population),
-                $fieldsNames['elevation'] => $this->e($elevation),
-                $fieldsNames['dem'] => $this->e($dem),
-                $fieldsNames['modificationDate'] => $this->e($modificationDate),
-                $fieldsNames['timezone'] => $timezone ? "(SELECT id FROM {$timezoneTableName} WHERE timezone  =  " . $this->e($timezone) . " LIMIT 1)" : 'NULL',
-                $fieldsNames['admin1'] => $admin1Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}") . " LIMIT 1)" : 'NULL',
-                $fieldsNames['admin2'] => $admin2Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin2Code}") . " LIMIT 1)" : 'NULL',
-                $fieldsNames['admin3'] => $admin3Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin3Code}") . " LIMIT 1)" : 'NULL',
-                $fieldsNames['admin4'] => $admin4Code ? "(SELECT id FROM {$administrativeTableName} WHERE code  =  " . $this->e("{$countryCode}.{$admin1Code}.{$admin4Code}") . " LIMIT 1)" : 'NULL',
-            ];
-
-
-
-
-            $query = $queryBuilder->values($data);
-
-
-            $buffer[] = $this->insertToReplace($query, $dbType);
-
-            $pos++;
-
-            if ($pos % $batchSize) {
-                $this->save($buffer);
-                $buffer = [];
-                is_callable($progress) && $progress(($pos) / $max);
-            }
-
-        }
-
-        !empty($buffer) && $this->save($buffer);
-        $connection->exec('COMMIT');
-
-        return true;
-    }
-
-
-    /**
-     * @param QueryBuilder $insertSQL
-     * @return mixed
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     */
-    public function insertToReplace(QueryBuilder $insertSQL, $dbType)
-    {
-        if ($dbType == "mysql") {
-            $sql = $insertSQL->getSQL();
-            return preg_replace('/' . preg_quote('INSERT ', '/') . '/', 'REPLACE ', $sql, 1);
-        }
-
-        if ($dbType == "postgresql") {
-            $vals = $insertSQL->getQueryPart("values");
-            $sql = $insertSQL->getSQL();
-            reset($vals);
-            $index = key($vals);
-            array_shift($vals);
-
-            $parts = [];
-            foreach ($vals as $column => $val) {
-                $parts[] = "{$column} = {$val}";
-            }
-
-            $sql .= " ON CONFLICT ({$index}) DO UPDATE  SET " . implode(", ", $parts);
-
-            return $sql;
-        }
-
-        throw new \Exception("Unsupported database type");
-    }
-
-    /**
-     * @param $queries
-     * @return bool
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     */
-    public function save($queries)
-    {
-        $queries = implode("; \n", $queries);
-        $this->em->getConnection()->exec($queries);
-
-        return true;
-    }
-
-
-    /**
-     * @return string[]
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     */
-    public function getFieldNames()
-    {
-        $metaData = $this->em->getClassMetadata("HotfixGeoNameBundle:GeoName");
-
-        $result = [];
-
-        foreach ($metaData->getFieldNames() as $name) {
-            $result[$name] = $metaData->getColumnName($name);
-        }
-
-        foreach ($metaData->getAssociationNames() as $name) {
-            if ($metaData->isSingleValuedAssociation($name)) {
-                $result[$name] = $metaData->getSingleAssociationJoinColumnName($name);
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param string $val
-     * @return string
-     * @author Chris Bednarczyk <chris@tourradar.com>
-     */
-    protected function e($val)
-    {
-        if ($val === null || strlen($val) === 0) {
-            return 'NULL';
-        }
-        return $this->em->getConnection()->quote($val);
     }
 
     public function supports(string $support): bool
     {
-        return false;
+        return $support === 'geonames';
     }
 
+    public function processRow(array $row): ?object
+    {
+        [
+            $geoNameId,
+            $name,
+            $asciiName,
+            $alternateNames,
+            $latitude,
+            $longitude,
+            $featureClass,
+            $featureCode,
+            $countryCode,
+            $cc2,
+            $admin1Code,
+            $admin2Code,
+            $admin3Code,
+            $admin4Code,
+            $population,
+            $elevation,
+            $dem,
+            $timezone,
+            $modificationDate,
+        ] = array_values($row);
+
+        if (!preg_match('/^\d{4}\-\d{2}-\d{2}$/', $modificationDate)) {
+            return null;
+        }
+
+        $object = $this->findByIdOrCreateNew($geoNameId);
+        $object->setId($geoNameId);
+        $object->setName($name);
+        $object->setAsciiName($asciiName);
+        $object->setLatitude($latitude);
+        $object->setLongitude($longitude);
+        $object->setFeatureClass($featureClass);
+        $object->setFeatureCode($featureCode);
+        $object->setPopulation((is_numeric($population)) ? (int)$population : null);
+        $object->setElevation((is_numeric($elevation)) ? (int)$elevation : null);
+        $object->setDem((is_numeric($dem)) ? (int)$dem : null);
+        $object->setCc2($cc2);
+        $object->setCountryCode($countryCode);
+
+        if (!$object->getCountry() || $object->getCountry()->getIso() !== $countryCode) {
+            $object->setCountry($this->getReferenceByCountryCode($countryCode));
+        }
+
+        foreach (range(1, 4) as $number) {
+            if (!$object->{"getAdmin${number}"}() || $object->{"getAdmin${number}"}()->getCode(
+                ) !== ${"admin${number}Code"}) {
+                $object->{"setAdmin${number}"}($this->getReferenceByAdminCode(${"admin${number}Code"}));
+            }
+        }
+
+        if (!$object->getTimezone() || $object->getTimezone()->getTimezone() !== $timezone) {
+            $object->setTimezone($this->getReferenceByTimezone($timezone));
+        }
+
+        return $object;
+    }
+
+    protected function findByIdOrCreateNew(int $geoNameId): GeoName
+    {
+        return $this->getRepository()->find($geoNameId) ?? new GeoName();
+    }
+
+    protected function getRepository(): GeoNameRepository
+    {
+        if (!$this->repository) {
+            $this->repository = $this->em->getRepository(GeoName::class);
+        }
+
+        return $this->repository;
+    }
+
+    public function getReferenceByCountryCode(string $countryCode): ?Country
+    {
+        if (!isset($this->countryReference[$countryCode])) {
+            $table = $this->getTableName(Country::class);
+            $id = $this->em->getConnection()->executeStatement(
+                'SELECT id FROM '.$table.' WHERE iso = :code',
+                ['code' => $countryCode]
+            );
+
+            $this->countryReference[$countryCode] = $id;
+        }
+
+        return $this->countryReference[$countryCode] ? $this->em->getReference(
+            Country::class,
+            $this->countryReference[$countryCode]
+        ) : null;
+    }
+
+    public function getReferenceByAdminCode(string $adminCode): ?Administrative
+    {
+        if (!isset($this->adminReference[$adminCode])) {
+            $table = $this->getTableName(Administrative::class);
+            $id = $this->em->getConnection()->executeStatement(
+                'SELECT id FROM '.$table.' WHERE code = :code',
+                ['code' => $adminCode]
+            );
+
+            $this->adminReference[$adminCode] = $id;
+        }
+
+        return $this->adminReference[$adminCode] ? $this->em->getReference(
+            Administrative::class,
+            $this->adminReference[$adminCode]
+        ) : null;
+    }
+
+    public function getReferenceByTimezone(string $timezone): ?Timezone
+    {
+        if (!isset($this->timezoneReference[$timezone])) {
+            $table = $this->getTableName(Timezone::class);
+            $id = $this->em->getConnection()->executeStatement(
+                'SELECT id FROM '.$table.' WHERE timezone = :timezone',
+                ['timezone' => $timezone]
+            );
+
+            $this->timezoneReference[$timezone] = $id;
+        }
+
+        return $this->timezoneReference[$timezone] ? $this->em->getReference(
+            Timezone::class,
+            $this->timezoneReference[$timezone]
+        ) : null;
+    }
 }

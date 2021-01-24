@@ -17,6 +17,9 @@ services:
             $cacheDir: '%kernel.cache_dir%'
         tags: [console.command]
 
+    Hotfix\Bundle\GeoNameBundle\Command\StatusCommand:
+        tags: [console.command]
+
     Hotfix\Bundle\GeoNameBundle\Repository\:
         resource: '../../Repository/*'
         tags: [doctrine.repository_service]
