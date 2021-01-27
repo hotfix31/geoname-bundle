@@ -60,7 +60,5 @@ abstract class ImportAbstract implements ImportInterface
         $this->em->flush();
         $this->em->commit();
         $this->em->clear();
-
-        $file->isFile();
     }
 }

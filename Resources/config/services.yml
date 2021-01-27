@@ -12,6 +12,8 @@ services:
 
     Hotfix\Bundle\GeoNameBundle\Service\Downloader:
 
+    Hotfix\Bundle\GeoNameBundle\Service\DbalExtension:
+
     Hotfix\Bundle\GeoNameBundle\Command\ImportCommand:
         arguments:
             $cacheDir: '%kernel.cache_dir%'
