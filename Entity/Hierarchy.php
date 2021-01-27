@@ -11,8 +11,8 @@ use Doctrine\ORM\Mapping as ORM;
 class Hierarchy
 {
     /**
-     * @ORM\Column(name="id", type="integer")
      * @ORM\Id
+     * @ORM\Column(name="id", type="integer")
      * @ORM\GeneratedValue(strategy="AUTO")
      */
     protected ?int $id = null;

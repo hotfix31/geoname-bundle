@@ -9,6 +9,7 @@ use Hotfix\Bundle\GeoNameBundle\Entity\Country;
 /**
  * @method Country|null find($id, $lockMode = null, $lockVersion = null)
  * @method Country|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Country|null findOneByIso(string $iso, array $orderBy = null)
  * @method Country[]    findAll()
  * @method Country[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */

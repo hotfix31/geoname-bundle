@@ -3,6 +3,7 @@
 namespace Hotfix\Bundle\GeoNameBundle\Command;
 
 use Hotfix\Bundle\GeoNameBundle\Service\Downloader;
+use Hotfix\Bundle\GeoNameBundle\Service\File;
 use Hotfix\Bundle\GeoNameBundle\Service\Importer;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -38,6 +39,10 @@ class ImportCommand extends Command
         'countries' => [
             'url' => 'https://download.geonames.org/export/dump/countryInfo.txt',
             'shortcut' => 'c',
+        ],
+        'hierarchy' => [
+            'url' => 'https://download.geonames.org/export/dump/hierarchy.zip',
+            'shortcut' => 'i',
         ],
     ];
 
@@ -332,7 +337,7 @@ class ImportCommand extends Command
 
         $this->importer->import(
             $importType,
-            new \SplFileObject($filename, 'r'),
+            new File($filename, 'r'),
             function ($percent) use ($progress) {
                 $progress->setProgress($percent * 100);
             }

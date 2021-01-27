@@ -2,7 +2,6 @@
 
 namespace Hotfix\Bundle\GeoNameBundle\Service\Import;
 
-use Hotfix\Bundle\GeoNameBundle\Entity\Administrative;
 use Hotfix\Bundle\GeoNameBundle\Entity\Timezone;
 use Hotfix\Bundle\GeoNameBundle\Repository\TimezoneRepository;
 
@@ -29,7 +28,7 @@ class TimeZoneImport extends ImportAbstract
         return $support === 'timezones';
     }
 
-    public function processRow(array $row): ?object
+    protected function processRow(array $row): ?object
     {
         [$countryCode, $timezone, $gmtOffset, $dstOffset, $rawOffset] = array_values($row);
 

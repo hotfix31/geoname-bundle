@@ -23,7 +23,7 @@ class Downloader
         }
 
         $request = $this->httpClient->request('GET', $url, $options);
-        foreach ($this->httpClient->stream($request, 0) as $chunk => $response) {
+        foreach ($this->httpClient->stream($request) as $chunk => $response) {
             if (!$response->isLast()) {
                 continue;
             }

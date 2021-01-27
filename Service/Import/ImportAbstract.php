@@ -3,29 +3,25 @@
 namespace Hotfix\Bundle\GeoNameBundle\Service\Import;
 
 use Doctrine\ORM\EntityManagerInterface;
-use League\Csv\Reader;
+use Hotfix\Bundle\GeoNameBundle\Service\DatabaseImporterTools;
+use Hotfix\Bundle\GeoNameBundle\Service\File;
 use League\Csv\TabularDataReader;
 
 abstract class ImportAbstract implements ImportInterface
 {
     protected EntityManagerInterface $em;
+    protected DatabaseImporterTools $databaseImporterTools;
     protected int $flushModulo = 1000;
 
-    public function __construct(EntityManagerInterface $em)
+    public function __construct(EntityManagerInterface $em, DatabaseImporterTools $databaseImporterTools)
     {
         $this->em = $em;
+        $this->databaseImporterTools = $databaseImporterTools;
     }
 
-    protected function getTableName(string $class): string
+    protected function getCsvReader(File $file): TabularDataReader
     {
-        return $this->em
-            ->getClassMetadata($class)
-            ->getTableName();
-    }
-
-    protected function getCsvReader(\SplFileObject $file): TabularDataReader
-    {
-        $csv = Reader::createFromFileObject($file);
+        $csv = $file->getCsvReader();
         $csv->setDelimiter("\t");
         $csv->setHeaderOffset(0);
         $csv->skipEmptyRecords();
@@ -33,11 +29,15 @@ abstract class ImportAbstract implements ImportInterface
         return $csv;
     }
 
-    public function import(\SplFileObject $file, ?callable $progress = null): void
+    public function import(File $file, ?callable $progress = null): void
     {
-        $file->setFlags(\SplFileObject::READ_AHEAD | \SplFileObject::SKIP_EMPTY | \SplFileObject::DROP_NEW_LINE);
         $csv = $this->getCsvReader($file);
         $max = count($csv);
+        if ($this->flushModulo >= $max) {
+            $this->flushModulo = round($max/3);
+        }
+
+        $this->databaseImporterTools->disabledLogger();
 
         $pos = 0;
         $this->em->beginTransaction();
@@ -49,16 +49,20 @@ abstract class ImportAbstract implements ImportInterface
             }
 
             !$object->getId() && $this->em->persist($object);
-            is_callable($progress) && $progress(($pos++) / $max);
-
             if ($pos % $this->flushModulo) {
                 $this->em->flush();
                 $this->em->clear();
+
+                is_callable($progress) && $progress(($pos++) / $max);
             }
         }
 
         $this->em->flush();
         $this->em->commit();
         $this->em->clear();
+
+        $this->databaseImporterTools->restoreLogger();
     }
+
+    abstract protected function processRow(array $row): ?object;
 }

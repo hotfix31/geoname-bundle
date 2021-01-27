@@ -7,54 +7,56 @@ use Hotfix\Bundle\GeoNameBundle\Entity\Administrative;
 use Hotfix\Bundle\GeoNameBundle\Entity\Country;
 use Hotfix\Bundle\GeoNameBundle\Entity\GeoName;
 use Hotfix\Bundle\GeoNameBundle\Entity\Timezone;
-use Hotfix\Bundle\GeoNameBundle\Service\DbalExtension;
+use Hotfix\Bundle\GeoNameBundle\Service\DatabaseImporterTools;
+use Hotfix\Bundle\GeoNameBundle\Service\File;
 use League\Csv\Reader;
 use League\Csv\Statement;
 use League\Csv\TabularDataReader;
 use Symfony\Component\Stopwatch\Stopwatch;
 
-class GeoNameImport extends ImportAbstract
+class GeoNameImport implements ImportInterface
 {
-    protected DbalExtension $dbalExtension;
-    protected array $adminReference = [];
-    protected array $countryReference = [];
-    protected array $timezoneReference = [];
-    protected int $flushModulo = 100;
-    private Stopwatch $stopwatch;
+    private EntityManagerInterface $em;
+    private DatabaseImporterTools $databaseImporterTools;
+    private array $adminReference = [];
+    private array $countryReference = [];
+    private array $timezoneReference = [];
+    private ?int $countLines = null;
+    protected Stopwatch $stopwatch;
 
-    public function __construct(EntityManagerInterface $em, DbalExtension $dbalExtension, Stopwatch $stopwatch)
+    public function __construct(EntityManagerInterface $em, DatabaseImporterTools $databaseImporterTools, Stopwatch $stopwatch)
     {
-        parent::__construct($em);
-        $this->dbalExtension = $dbalExtension;
+        $this->em = $em;
+        $this->databaseImporterTools = $databaseImporterTools;
         $this->stopwatch = $stopwatch;
     }
 
-    private function count(\SplFileObject $file): int
+    private function getNbRecords(): int
     {
-        $counter = 0;
-        while (!$file->eof()) {
-            $file->fgets();
-            $counter++;
-        }
-
-        $file->seek(0);
-
-        return $counter;
+        return $this->nbRecords ?? 0;
     }
 
-    public function import(\SplFileObject $file, ?callable $progress = null): void
+    public function getCountLines(): ?int
+    {
+        return $this->countLines;
+    }
+
+    protected function setCountLines(?int $countLines): self
+    {
+        $this->countLines = $countLines;
+
+        return $this;
+    }
+
+    public function import(File $file, ?callable $progress = null): void
     {
         $this->stopwatch->start('CSV Reader', 'import');
-        //$file->setFlags(\SplFileObject::READ_AHEAD | \SplFileObject::SKIP_EMPTY | \SplFileObject::DROP_NEW_LINE);
         $csv = $this->getCsvReader($file);
         $this->stopwatch->stop('CSV Reader');
-        //$max = 100;
-        $this->stopwatch->start('CSV counter', 'import');
-        $max = $this->count($file);
-        $this->stopwatch->stop('CSV counter');
 
         $pos = 0;
         $replaces = [];
+        $max = $this->getNbRecords();
         $this->em->beginTransaction();
 
         $this->stopwatch->start('CSV parser', 'import');
@@ -64,7 +66,7 @@ class GeoNameImport extends ImportAbstract
 
             $row['country_id'] = $this->getReferenceByCountryCode($row['country_code']);
 
-            $row['timezone_id'] = $this->getReferenceByCountryCode($row['timezone']);
+            $row['timezone_id'] = $this->getReferenceByTimezone($row['timezone']);
             unset($row['timezone']);
 
             foreach (range(1, 4) as $number) {
@@ -82,16 +84,9 @@ class GeoNameImport extends ImportAbstract
             $replaces[] = $row;
             is_callable($progress) && $progress(($pos++) / $max);
 
-            if ($pos % $this->flushModulo) {
+            if ($pos%1000) {
                 $this->stopwatch->start('replace in loop', 'import');
-                $this->dbalExtension->replace(
-                    $this->getTableName(GeoName::class),
-                    $replaces
-                );
-
-                $this->em->flush();
-                $this->em->clear();
-
+                $this->databaseImporterTools->replace(GeoName::class, $replaces);
                 $replaces = [];
                 $this->stopwatch->stop('replace in loop');
             }
@@ -105,17 +100,12 @@ class GeoNameImport extends ImportAbstract
         $this->stopwatch->stop('em flush and clear');
     }
 
-    public function getCsvReader(\SplFileObject $file): TabularDataReader
+    public function getCsvReader(File $file): TabularDataReader
     {
-        $filenameUnzip = str_replace('.zip', '.txt', $file->getRealPath());
-        if (!file_exists($filenameUnzip) || filectime($filenameUnzip) < $file->getCTime()) {
-            $zip = new \ZipArchive();
-            $zip->open($file->getRealPath());
-            $zip->extractTo(dirname($file->getRealPath()), [$file->getBasename('.zip').'.txt']);
-            $zip->close();
-        }
+        $file2 = $file->unzip();
+        $this->setCountLines($file2->getCountLines());
 
-        $csv = Reader::createFromPath($filenameUnzip, 'r');
+        $csv = Reader::createFromPath($file2->getRealPath());
         $csv->setDelimiter("\t");
         $csv->setHeaderOffset(null);
         $csv->skipEmptyRecords();
@@ -152,16 +142,10 @@ class GeoNameImport extends ImportAbstract
         return $support === 'geonames';
     }
 
-    public function processRow(array $row): ?object
-    {
-        // not implemented here
-        return new \stdClass();
-    }
-
     public function getReferenceByCountryCode(string $countryCode): ?int
     {
         if (!isset($this->countryReference[$countryCode])) {
-            $table = $this->getTableName(Country::class);
+            $table = $this->databaseImporterTools->getTableName(Country::class);
             $id = $this->em->getConnection()->executeStatement(
                 'SELECT id FROM '.$table.' WHERE iso = ?',
                 [$countryCode]
@@ -176,7 +160,7 @@ class GeoNameImport extends ImportAbstract
     public function getReferenceByAdminCode(string $adminCode): ?int
     {
         if (!isset($this->adminReference[$adminCode])) {
-            $table = $this->getTableName(Administrative::class);
+            $table = $this->databaseImporterTools->getTableName(Administrative::class);
             $id = $this->em->getConnection()->executeStatement(
                 'SELECT id FROM '.$table.' WHERE code = ?',
                 [$adminCode]
@@ -191,7 +175,7 @@ class GeoNameImport extends ImportAbstract
     public function getReferenceByTimezone(string $timezone): ?int
     {
         if (!isset($this->timezoneReference[$timezone])) {
-            $table = $this->getTableName(Timezone::class);
+            $table = $this->databaseImporterTools->getTableName(Timezone::class);
             $id = $this->em->getConnection()->executeStatement(
                 'SELECT id FROM '.$table.' WHERE timezone = ?',
                 [$timezone]

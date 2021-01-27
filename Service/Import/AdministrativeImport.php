@@ -4,6 +4,7 @@ namespace Hotfix\Bundle\GeoNameBundle\Service\Import;
 
 use Hotfix\Bundle\GeoNameBundle\Entity\Administrative;
 use Hotfix\Bundle\GeoNameBundle\Repository\AdministrativeRepository;
+use Hotfix\Bundle\GeoNameBundle\Service\File;
 use League\Csv\Reader;
 use League\Csv\Statement;
 use League\Csv\TabularDataReader;
@@ -12,7 +13,7 @@ class AdministrativeImport extends ImportAbstract
 {
     protected ?AdministrativeRepository $repository = null;
 
-    protected function getCsvReader(\SplFileObject $file): TabularDataReader
+    protected function getCsvReader(File $file): TabularDataReader
     {
         $csv = parent::getCsvReader($file);
         if ($csv instanceof Reader) {
@@ -40,7 +41,7 @@ class AdministrativeImport extends ImportAbstract
     /**
      * @return Administrative
      */
-    public function processRow(array $row): ?object
+    protected function processRow(array $row): ?object
     {
         [$code, $name, $asciiName, $geonameId] = array_values($row);
 

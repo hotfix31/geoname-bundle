@@ -2,6 +2,8 @@
 
 namespace Hotfix\Bundle\GeoNameBundle\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -13,84 +15,89 @@ use Doctrine\ORM\Mapping as ORM;
 class Country
 {
     /**
-     * @ORM\Column(name="id", type="integer")
      * @ORM\Id
-     * @ORM\GeneratedValue(strategy="NONE")
+     * @ORM\Column(type="integer")
+     * @ORM\GeneratedValue(strategy="AUTO")
      */
     protected ?int $id = null;
 
     /**
-     * @ORM\Column(name="iso", type="string", length=2, nullable=false)
+     * @ORM\Column(type="string", length=2, nullable=false, unique=true)
      */
     protected ?string $iso = null;
 
     /**
-     * @ORM\Column(name="iso3", type="string", length=3, nullable=false)
+     * @ORM\Column(type="string", length=3, nullable=false)
      */
     protected ?string $iso3 = null;
 
     /**
-     * @ORM\Column(name="iso_numeric", type="integer", length=3, nullable=false)
+     * @ORM\Column(type="integer", length=3, nullable=false)
      */
     protected ?int $isoNumeric = null;
 
     /**
-     * @ORM\Column(name="fips", type="string", length=2, nullable=true)
+     * @ORM\Column(type="string", length=2, nullable=true)
      */
     protected ?string $fips = null;
 
     /**
-     * @ORM\Column(name="name", type="string", length=255, nullable=false)
+     * @ORM\Column(type="string", length=255, nullable=false)
      */
     protected ?string $name = null;
 
     /**
-     * @ORM\Column(name="capital", type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     protected ?string $capital = null;
 
     /**
-     * @ORM\Column(name="area", type="bigint", nullable=false)
+     * @ORM\Column(type="bigint", nullable=false)
      */
     protected ?int $area = null;
 
     /**
-     * @ORM\Column(name="population", type="bigint", nullable=false)
+     * @ORM\Column(type="bigint", nullable=false)
      */
     protected ?int $population = null;
 
     /**
-     * @ORM\Column(name="tld", type="string", length=15, nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=false)
+     */
+    protected ?string $continent = null;
+
+    /**
+     * @ORM\Column(type="string", length=15, nullable=true)
      */
     protected ?string $tld = null;
 
     /**
-     * @ORM\Column(name="currency", type="string", length=3, nullable=true)
+     * @ORM\Column(type="string", length=3, nullable=true)
      */
     protected ?string $currency = null;
 
     /**
-     * @ORM\Column(name="currency_name", type="string", length=50, nullable=true)
+     * @ORM\Column(type="string", length=50, nullable=true)
      */
     protected ?string $currencyName = null;
 
     /**
-     * @ORM\Column(name="phone_prefix", type="integer", nullable=true)
+     * @ORM\Column(type="integer", nullable=true)
      */
     protected ?string $phonePrefix = null;
 
     /**
-     * @ORM\Column(name="postal_format", type="text", nullable=true)
+     * @ORM\Column(type="text", nullable=true)
      */
     protected ?string $postalFormat = null;
 
     /**
-     * @ORM\Column(name="postal_regex", type="text", nullable=true)
+     * @ORM\Column(type="text", nullable=true)
      */
     protected ?string $postalRegex = null;
 
     /**
-     * @ORM\Column(name="languages", type="json", nullable=true)
+     * @ORM\Column(type="json", nullable=true)
      */
     protected ?array $languages = null;
 
@@ -100,9 +107,19 @@ class Country
      */
     protected ?GeoName $geoName = null;
 
-    public function __construct($id = null)
+    /**
+     * @ORM\ManyToMany(targetEntity=Country::class)
+     * @ORM\JoinTable(
+     *     name="geo__country_neighbours",
+     *     joinColumns={@ORM\JoinColumn(name="country_a_id", referencedColumnName="id")},
+     *     inverseJoinColumns={@ORM\JoinColumn(name="country_b_id", referencedColumnName="id")}
+     * )
+     */
+    private Collection $neighbours;
+
+    public function __construct()
     {
-        $this->id = $id;
+        $this->neighbours = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -113,6 +130,7 @@ class Country
     public function setId(int $id): self
     {
         $this->id = $id;
+
         return $this;
     }
 
@@ -124,6 +142,7 @@ class Country
     public function setIso(string $iso): self
     {
         $this->iso = $iso;
+
         return $this;
     }
 
@@ -135,6 +154,7 @@ class Country
     public function setIso3(string $iso3): self
     {
         $this->iso3 = $iso3;
+
         return $this;
     }
 
@@ -146,6 +166,7 @@ class Country
     public function setIsoNumeric(int $isoNumeric): self
     {
         $this->isoNumeric = $isoNumeric;
+
         return $this;
     }
 
@@ -154,9 +175,10 @@ class Country
         return $this->fips;
     }
 
-    public function setFips(string $fips): self
+    public function setFips(?string $fips): self
     {
         $this->fips = $fips;
+
         return $this;
     }
 
@@ -165,9 +187,10 @@ class Country
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(?string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -176,7 +199,7 @@ class Country
         return $this->area;
     }
 
-    public function setArea(string $area): self
+    public function setArea(?string $area): self
     {
         $this->area = $area;
 
@@ -188,9 +211,10 @@ class Country
         return $this->capital;
     }
 
-    public function setCapital(string $capital): self
+    public function setCapital(?string $capital): self
     {
         $this->capital = $capital;
+
         return $this;
     }
 
@@ -202,6 +226,19 @@ class Country
     public function setPopulation(int $population): self
     {
         $this->population = $population;
+
+        return $this;
+    }
+
+    public function getContinent(): ?string
+    {
+        return $this->continent;
+    }
+
+    public function setContinent(?string $continent): self
+    {
+        $this->continent = $continent;
+
         return $this;
     }
 
@@ -210,9 +247,10 @@ class Country
         return $this->tld;
     }
 
-    public function setTld(string $tld): self
+    public function setTld(?string $tld): self
     {
         $this->tld = $tld;
+
         return $this;
     }
 
@@ -221,9 +259,10 @@ class Country
         return $this->currency;
     }
 
-    public function setCurrency(string $currency): self
+    public function setCurrency(?string $currency): self
     {
         $this->currency = $currency;
+
         return $this;
     }
 
@@ -232,9 +271,10 @@ class Country
         return $this->currencyName;
     }
 
-    public function setCurrencyName(string $currencyName): self
+    public function setCurrencyName(?string $currencyName): self
     {
         $this->currencyName = $currencyName;
+
         return $this;
     }
 
@@ -243,9 +283,10 @@ class Country
         return $this->phonePrefix;
     }
 
-    public function setPhonePrefix(int $phonePrefix): self
+    public function setPhonePrefix(?int $phonePrefix): self
     {
         $this->phonePrefix = $phonePrefix;
+
         return $this;
     }
 
@@ -254,9 +295,10 @@ class Country
         return $this->postalFormat;
     }
 
-    public function setPostalFormat(string $postalFormat): self
+    public function setPostalFormat(?string $postalFormat): self
     {
         $this->postalFormat = $postalFormat;
+
         return $this;
     }
 
@@ -265,9 +307,10 @@ class Country
         return $this->postalRegex;
     }
 
-    public function setPostalRegex(string $postalRegex): self
+    public function setPostalRegex(?string $postalRegex): self
     {
         $this->postalRegex = $postalRegex;
+
         return $this;
     }
 
@@ -276,9 +319,10 @@ class Country
         return $this->languages;
     }
 
-    public function setLanguages(array $languages): self
+    public function setLanguages(?array $languages): self
     {
         $this->languages = $languages;
+
         return $this;
     }
 
@@ -290,6 +334,32 @@ class Country
     public function setGeoName(GeoName $geoName): self
     {
         $this->geoName = $geoName;
+
+        return $this;
+    }
+
+    public function getNeighbours(): Collection
+    {
+        return $this->neighbours;
+    }
+
+    public function addNeighbour(Country $neighbour): self
+    {
+        if (!$this->neighbours->contains($neighbour)) {
+            $this->neighbours->add($neighbour);
+            $neighbour->addNeighbour($neighbour);
+        }
+
+        return $this;
+    }
+
+    public function removeNeighbour(Country $neighbour): self
+    {
+        if ($this->neighbours->contains($neighbour)) {
+            $this->neighbours->removeElement($neighbour);
+            $neighbour->removeNeighbour($this);
+        }
+
         return $this;
     }
 }

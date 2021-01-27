@@ -2,11 +2,11 @@
 
 namespace Hotfix\Bundle\GeoNameBundle\Service\Import;
 
+use Hotfix\Bundle\GeoNameBundle\Service\File;
+
 interface ImportInterface
 {
-    public function import(\SplFileObject $file, ?callable $progress = null): void;
+    public function import(File $file, ?callable $progress = null): void;
 
     public function supports(string $support): bool;
-
-    public function processRow(array $row): ?object;
 }
