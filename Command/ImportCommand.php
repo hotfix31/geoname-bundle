@@ -20,6 +20,10 @@ class ImportCommand extends Command
     private string $cacheDir;
 
     private array $imports = [
+        'feature-codes' => [
+            'url' => 'https://download.geonames.org/export/dump/featureCodes_en.txt',
+            'shortcut' => 'f',
+        ],
         'timezones' => [
             'url' => 'https://download.geonames.org/export/dump/timeZones.txt',
             'shortcut' => 't',
@@ -82,80 +86,6 @@ class ImportCommand extends Command
                 sprintf('options to skip import %s', $name)
             );
         }
-
-/**
-        ->
-        addOption(
-            'geoname',
-            'a',
-            InputOption::VALUE_OPTIONAL,
-            'Archive to GeoNames',
-            'http://download.geonames.org/export/dump/allCountries.zip'
-        )
-            ->addOption(
-                'admin1-codes',
-                'a1',
-                InputOption::VALUE_OPTIONAL,
-                'Admin 1 Codes file',
-                'http://download.geonames.org/export/dump/admin1CodesASCII.txt'
-            )
-            ->addOption(
-                'hierarchy',
-                'hi',
-                InputOption::VALUE_OPTIONAL,
-                'Hierarchy ZIP file',
-                'http://download.geonames.org/export/dump/hierarchy.zip'
-            )
-            ->addOption(
-                'admin2-codes',
-                'a2',
-                InputOption::VALUE_OPTIONAL,
-                "Admin 2 Codes file",
-                'http://download.geonames.org/export/dump/admin2Codes.txt'
-            )
-            ->addOption(
-                'languages-codes',
-                'lc',
-                InputOption::VALUE_OPTIONAL,
-                "Admin 2 Codes file",
-                'http://download.geonames.org/export/dump/iso-languagecodes.txt'
-            )
-            ->addOption(
-                'country-info',
-                'ci',
-                InputOption::VALUE_OPTIONAL,
-                "Country info file",
-                'http://download.geonames.org/export/dump/countryInfo.txt'
-            )
-            ->addOption(
-                'skip-admin1-codes',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                '',
-                false
-            )
-            ->addOption(
-                'skip-admin2-codes',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                '',
-                false
-            )
-            ->addOption(
-                'skip-geoname',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                '',
-                false
-            )
-            ->addOption(
-                'skip-hierarchy',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                '',
-                false
-            )
-            ->setDescription('Import GeoNames');*/
     }
 
     protected function processDownload(InputInterface $input, OutputInterface $output, string $downloadDir): iterable
@@ -197,127 +127,6 @@ class ImportCommand extends Command
         }
 
         return 0;
-        /*$this->importWithProgressBar(
-            $this->getContainer()->get("Hotfix.geoname.import.timezone"),
-            $timezonesLocal,
-            "Importing timezones",
-            $output
-        )->wait();
-
-        $output->writeln('');
-
-        if (!$input->getOption("skip-admin1")) {
-            // admin1
-            $admin1 = $input->getOption('admin1-codes');
-            $admin1Local = $downloadDir.DIRECTORY_SEPARATOR.basename($admin1);
-
-            $this->downloadWithProgressBar(
-                $admin1,
-                $admin1Local,
-                $output
-            )->wait();
-            $output->writeln('');
-
-            $this->importWithProgressBar(
-                $this->getContainer()->get("Hotfix.geoname.import.administrative"),
-                $admin1Local,
-                "Importing administrative 1",
-                $output
-            )->wait();
-
-            $output->writeln('');
-        }
-
-
-        if (!$input->getOption("skip-admin2")) {
-            $admin2 = $input->getOption('admin2-codes');
-            $admin2Local = $downloadDir.DIRECTORY_SEPARATOR.basename($admin2);
-
-
-            $this->downloadWithProgressBar(
-                $admin2,
-                $admin2Local,
-                $output
-            )->wait();
-            $output->writeln('');
-
-            $this->importWithProgressBar(
-                $this->getContainer()->get("Hotfix.geoname.import.administrative"),
-                $admin2Local,
-                "Importing administrative 2",
-                $output
-            )->wait();
-
-
-            $output->writeln('');
-        }
-
-
-        if (!$input->getOption("skip-geoname")) {
-            // archive
-            $archive = $input->getOption('archive');
-            $archiveLocal = $downloadDir.DIRECTORY_SEPARATOR.basename($archive);
-
-            $this->downloadWithProgressBar(
-                $archive,
-                $archiveLocal,
-                $output
-            )->wait();
-            $output->writeln('');
-
-            $this->importWithProgressBar(
-                $this->getContainer()->get("Hotfix.geoname.import.geoname"),
-                $archiveLocal,
-                "Importing GeoNames",
-                $output,
-                1000
-            )->wait();
-
-
-            $output->writeln("");
-        }
-
-        //countries import
-        $this->importWithProgressBar(
-            $this->getContainer()->get("Hotfix.geoname.import.country"),
-            $countryInfoLocal,
-            "Importing Countries",
-            $output
-        )->wait();
-
-
-        if (!$input->getOption("skip-hierarchy")) {
-            // archive
-            $archive = $input->getOption('hierarchy');
-            $archiveLocal = $downloadDir.DIRECTORY_SEPARATOR.basename($archive);
-
-            $this->downloadWithProgressBar(
-                $archive,
-                $archiveLocal,
-                $output
-            )->wait();
-            $output->writeln('');
-
-            $this->importWithProgressBar(
-                $this->getContainer()->get("Hotfix.geoname.import.hierarchy"),
-                $archiveLocal,
-                "Importing Hierarchy",
-                $output,
-                1000
-            )->wait();
-
-
-            $output->writeln("");
-        }
-
-
-        $output->writeln("");
-
-
-        $output->writeln("Imported successfully! Thank you :) ");
-
-        return 0;
-*/
     }
 
     public function getProgressBar(OutputInterface $output): ProgressBar

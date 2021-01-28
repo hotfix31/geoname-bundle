@@ -5,7 +5,7 @@ namespace Hotfix\Bundle\GeoNameBundle\Service\Import;
 use Hotfix\Bundle\GeoNameBundle\Entity\Timezone;
 use Hotfix\Bundle\GeoNameBundle\Repository\TimezoneRepository;
 
-class TimeZoneImport extends ImportAbstract
+class TimezoneImport extends ImportAbstract
 {
     protected ?TimezoneRepository $repository = null;
 

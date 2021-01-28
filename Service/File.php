@@ -18,9 +18,19 @@ class File extends \SplFileObject
     public function getCountLines(): int
     {
         if ($this->countLines === null) {
+            if (!$this->isReadable()) {
+                throw new \LogicException('file cannot be read.');
+            }
+
+            $this->seek(0);
+            $this->countLines = 0;
             while ($this->valid()) {
-                $this->fgets();
-                $this->countLines++;
+                try {
+                    $this->fgets();
+                    $this->countLines++;
+                } catch (\RuntimeException $e) {
+                    // continue
+                }
             }
         }
 

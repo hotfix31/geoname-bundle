@@ -18,7 +18,7 @@ class Hierarchy
     protected ?int $id = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity=GeoName::class)
+     * @ORM\ManyToOne(targetEntity=GeoName::class, inversedBy="children")
      * @ORM\JoinColumn(name="parent_id", referencedColumnName="id", nullable=true, onDelete="CASCADE")
      */
     protected ?GeoName $parent = null;

@@ -1,0 +1,13 @@
+version: '3.7'
+services:
+  sql:
+    image: mariadb
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - 1306:3306
+
+  adminer:
+    image: adminer
+    ports:
+      - 1880:8080

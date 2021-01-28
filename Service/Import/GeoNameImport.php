@@ -5,6 +5,7 @@ namespace Hotfix\Bundle\GeoNameBundle\Service\Import;
 use Doctrine\ORM\EntityManagerInterface;
 use Hotfix\Bundle\GeoNameBundle\Entity\Administrative;
 use Hotfix\Bundle\GeoNameBundle\Entity\Country;
+use Hotfix\Bundle\GeoNameBundle\Entity\Feature;
 use Hotfix\Bundle\GeoNameBundle\Entity\GeoName;
 use Hotfix\Bundle\GeoNameBundle\Entity\Timezone;
 use Hotfix\Bundle\GeoNameBundle\Service\DatabaseImporterTools;
@@ -18,9 +19,7 @@ class GeoNameImport implements ImportInterface
 {
     private EntityManagerInterface $em;
     private DatabaseImporterTools $databaseImporterTools;
-    private array $adminReference = [];
-    private array $countryReference = [];
-    private array $timezoneReference = [];
+    private array $references = [];
     private ?int $countLines = null;
     protected Stopwatch $stopwatch;
 
@@ -29,11 +28,6 @@ class GeoNameImport implements ImportInterface
         $this->em = $em;
         $this->databaseImporterTools = $databaseImporterTools;
         $this->stopwatch = $stopwatch;
-    }
-
-    private function getNbRecords(): int
-    {
-        return $this->nbRecords ?? 0;
     }
 
     public function getCountLines(): ?int
@@ -56,17 +50,19 @@ class GeoNameImport implements ImportInterface
 
         $pos = 0;
         $replaces = [];
-        $max = $this->getNbRecords();
-        $this->em->beginTransaction();
+        $max = $this->getCountLines();
 
+        $this->em->beginTransaction();
         $this->stopwatch->start('CSV parser', 'import');
         foreach ($csv as $row) {
             $row = array_map('trim', $row);
             unset($row['alternatenames']);
 
-            $row['country_id'] = $this->getReferenceByCountryCode($row['country_code']);
+            $row['country_id'] = $this->getReferenceCountry($row['country_code']);
+            $row['feature_id'] = $this->getReferenceFeature($row['feature_class'], $row['feature_class']);
+            unset($row['feature_class'], $row['feature_class']);
 
-            $row['timezone_id'] = $this->getReferenceByTimezone($row['timezone']);
+            $row['timezone_id'] = $this->getReferenceTimezone($row['timezone']);
             unset($row['timezone']);
 
             foreach (range(1, 4) as $number) {
@@ -75,7 +71,7 @@ class GeoNameImport implements ImportInterface
 
                 $row[$keyId] = null;
                 if ($row[$keyCode]) {
-                    $row[$keyId] = $this->getReferenceByAdminCode($row[$keyCode]);
+                    $row[$keyId] = $this->getReferenceAdministrative($row[$keyCode]);
                 }
 
                 unset($row[$keyCode]);
@@ -142,48 +138,74 @@ class GeoNameImport implements ImportInterface
         return $support === 'geonames';
     }
 
-    public function getReferenceByCountryCode(string $countryCode): ?int
+    private function getReference(string $entity, array $keys, callable $resolve): ?int
     {
-        if (!isset($this->countryReference[$countryCode])) {
-            $table = $this->databaseImporterTools->getTableName(Country::class);
-            $id = $this->em->getConnection()->executeStatement(
-                'SELECT id FROM '.$table.' WHERE iso = ?',
-                [$countryCode]
-            );
-
-            $this->countryReference[$countryCode] = $id;
+        if (!isset($this->references[$entity])) {
+            $this->references[$entity] = [];
         }
 
-        return $this->countryReference[$countryCode];
-    }
-
-    public function getReferenceByAdminCode(string $adminCode): ?int
-    {
-        if (!isset($this->adminReference[$adminCode])) {
+        $hash = md5(serialize($keys));
+        if (!isset($this->references[$entity][$hash])) {
             $table = $this->databaseImporterTools->getTableName(Administrative::class);
-            $id = $this->em->getConnection()->executeStatement(
-                'SELECT id FROM '.$table.' WHERE code = ?',
-                [$adminCode]
-            );
-
-            $this->adminReference[$adminCode] = $id;
+            $this->references[$entity][$hash] = $resolve($table, ...$keys);
         }
 
-        return $this->adminReference[$adminCode];
+        return $this->references[$entity][$hash];
     }
 
-    public function getReferenceByTimezone(string $timezone): ?int
+    public function getReferenceCountry(string $countryCode): ?int
     {
-        if (!isset($this->timezoneReference[$timezone])) {
-            $table = $this->databaseImporterTools->getTableName(Timezone::class);
-            $id = $this->em->getConnection()->executeStatement(
-                'SELECT id FROM '.$table.' WHERE timezone = ?',
-                [$timezone]
-            );
+        return $this->getReference(
+            Country::class,
+            [$countryCode],
+            function (string $table, string $countryCode) {
+                return $this->em->getConnection()->executeStatement(
+                    'SELECT id FROM '.$table.' WHERE iso = ?',
+                    [$countryCode]
+                );
+            }
+        );
+    }
 
-            $this->timezoneReference[$timezone] = $id;
-        }
+    private function getReferenceAdministrative(string $adminCode): ?int
+    {
+        return $this->getReference(
+            Administrative::class,
+            [$adminCode],
+            function (string $table, string $adminCode) {
+                return $this->em->getConnection()->executeStatement(
+                    'SELECT id FROM '.$table.' WHERE code = ?',
+                    [$adminCode]
+                );
+            }
+        );
+    }
 
-        return $this->timezoneReference[$timezone];
+    public function getReferenceFeature(string $class, string $code): ?int
+    {
+        return $this->getReference(
+            Feature::class,
+            [$class, $code],
+            function (string $table, string $class, string $code) {
+                return $this->em->getConnection()->executeStatement(
+                    'SELECT id FROM '.$table.' WHERE class = ? AND code = ?',
+                    [$class, $code]
+                );
+            }
+        );
+    }
+
+    public function getReferenceTimezone(string $timezone): ?int
+    {
+        return $this->getReference(
+            Timezone::class,
+            [$timezone],
+            function (string $table, string $timezone) {
+                return $this->em->getConnection()->executeStatement(
+                    'SELECT id FROM '.$table.' WHERE timezone = ?',
+                    [$timezone]
+                );
+            }
+        );
     }
 }
