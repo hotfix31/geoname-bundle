@@ -32,7 +32,7 @@ class HierarchyImport extends ImportAbstract
     {
         $hierarchy = new Hierarchy();
         $hierarchy->setParent($this->em->getReference(GeoName::class, $row['parentId']));
-        $hierarchy->setParent($this->em->getReference(GeoName::class, $row['childId']));
+        $hierarchy->setChild($this->em->getReference(GeoName::class, $row['childId']));
 
         return $hierarchy;
     }

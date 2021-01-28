@@ -58,26 +58,32 @@ class GeoNameImport implements ImportInterface
             $row = array_map('trim', $row);
             unset($row['alternatenames']);
 
-            $row['country_id'] = $this->getReferenceCountry($row['country_code']);
-            $row['feature_id'] = $this->getReferenceFeature($row['feature_class'], $row['feature_class']);
-            unset($row['feature_class'], $row['feature_class']);
+            $data = [
+                'id' => (int) $row['id'],
+                'name' => $row['name'],
+                'ascii_name' => $row['ascii_name'],
+                'latitude' => $row['latitude'] ?? null,
+                'longitude' => $row['longitude'] ?? null,
+                'country_code' => $row['country_code'] ?? null,
+                'cc2' => $row['cc2'] ?? null,
+                'modification_date' => $row['modification_date'] ?? (new \DateTime())->format('Y-m-d'),
+                'population' => $row['population'] ? (int) $row['population'] : null,
+                'elevation' => $row['elevation'] ? (int) $row['elevation'] : null,
+                'dem' => $row['dem'] ? (int) $row['dem'] : null,
+            ];
 
-            $row['timezone_id'] = $this->getReferenceTimezone($row['timezone']);
-            unset($row['timezone']);
+            $data['feature_id'] = $this->getReferenceFeature($row['feature_class'], $row['feature_code']);
+            $data['timezone_id'] = $this->getReferenceTimezone($row['timezone']);
+            $data['country_id'] = $this->getReferenceCountry($row['country_code']);
 
             foreach (range(1, 4) as $number) {
                 $keyCode = "admin${number}Code";
                 $keyId = "admin${number}_id";
 
-                $row[$keyId] = null;
-                if ($row[$keyCode]) {
-                    $row[$keyId] = $this->getReferenceAdministrative($row[$keyCode]);
-                }
-
-                unset($row[$keyCode]);
+                $data[$keyId] = (!empty($row[$keyCode])) ? $this->getReferenceAdministrative($row[$keyCode]) : null;
             }
 
-            $replaces[] = $row;
+            $replaces[] = $data;
             is_callable($progress) && $progress(($pos++) / $max);
 
             if ($pos%1000) {
@@ -146,11 +152,11 @@ class GeoNameImport implements ImportInterface
 
         $hash = md5(serialize($keys));
         if (!isset($this->references[$entity][$hash])) {
-            $table = $this->databaseImporterTools->getTableName(Administrative::class);
-            $this->references[$entity][$hash] = $resolve($table, ...$keys);
+            $table = $this->databaseImporterTools->getTableName($entity);
+            $this->references[$entity][$hash] = (int) $resolve($table, ...$keys);
         }
 
-        return $this->references[$entity][$hash];
+        return $this->references[$entity][$hash] === 0 ? null : $this->references[$entity][$hash];
     }
 
     public function getReferenceCountry(string $countryCode): ?int

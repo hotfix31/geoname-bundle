@@ -11,8 +11,8 @@ use Doctrine\ORM\Mapping as ORM;
 class Timezone implements \Stringable
 {
     /**
-     * @ORM\Column(name="id", type="integer")
      * @ORM\Id
+     * @ORM\Column(type="integer")
      * @ORM\GeneratedValue(strategy="AUTO")
      */
     protected ?int $id = null;
@@ -20,27 +20,27 @@ class Timezone implements \Stringable
     /**
      * the iana timezone id
      *
-     * @ORM\Column(name="timezone", type="string", length=50, unique=true)
+     * @ORM\Column(type="string", length=50, unique=true)
      */
     protected ?string $timezone = null;
 
     /**
-     * @ORM\Column(name="country_code", type="string", length=2)
+     * @ORM\Column(type="string", length=2)
      */
     protected ?string $countryCode = null;
 
     /**
-     * @ORM\Column(name="gmt_offset", type="float", scale=1)
+     * @ORM\Column(type="float", scale=1)
      */
     protected ?float $gmtOffset = null;
 
     /**
-     * @ORM\Column(name="dst_offset", type="float", scale=1)
+     * @ORM\Column(type="float", scale=1)
      */
     protected ?float $dstOffset = null;
 
     /**
-     * @ORM\Column(name="raw_offset", type="float", scale=1)
+     * @ORM\Column(type="float", scale=1)
      */
     protected ?float $rawOffset = null;
 

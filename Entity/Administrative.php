@@ -18,27 +18,27 @@ class Administrative
     protected ?int $id = null;
 
     /**
-     * @ORM\Column(name="code", type="string", length=30, unique=true)
+     * @ORM\Column(type="string", length=30, unique=true)
      */
     protected ?string $code = null;
 
     /**
      * name of geographical point (utf8) varchar(200)
      *
-     * @ORM\Column(name="name", type="string", length=200)
+     * @ORM\Column(type="string", length=200)
      */
     protected ?string $name = null;
 
     /**
      * name of geographical point in plain ascii characters, varchar(200)
      *
-     * @ORM\Column(name="ascii_name", type="string", length=200, nullable=true)
+     * @ORM\Column(type="string", length=200, nullable=true)
      */
     protected ?string $asciiName = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=GeoName::class)
-     * @ORM\JoinColumn(name="geoname_id", referencedColumnName="id", nullable=true)
+     * @ORM\JoinColumn(referencedColumnName="id", nullable=true)
      */
     protected ?GeoName $geoName = null;
 

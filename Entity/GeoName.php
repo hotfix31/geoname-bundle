@@ -9,15 +9,14 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Table(name="geo__name" ,indexes={
  *     @ORM\Index(name="geoname_geoname_search_idx", columns={"name", "country_code"}),
- *     @ORM\Index(name="geoname_feature_code_idx", columns={"feature_code"})
  * })
  * @ORM\Entity(repositoryClass="Hotfix\Bundle\GeoNameBundle\Repository\GeoNameRepository")
  */
 class GeoName
 {
     /**
-     * @ORM\Column(name="id", type="integer")
      * @ORM\Id
+     * @ORM\Column(name="id", type="integer")
      * @ORM\GeneratedValue(strategy="NONE")
      */
     protected ?int $id = null;

@@ -102,20 +102,21 @@ final class DatabaseImporterTools
      * @param object|string $entity
      * @param array<array<string,mixed>> $data
      */
-    public function replace(string $entity, array $data): bool
+    public function replace($entity, array $data): bool
     {
         $this->disabledLogger();
         $first = $this->getFirstRow($data);
 
-        $columns = '`'.implode('`,`', $this->getColumns($first)).'`';
-
-        $sql = 'REPLACE INTO `'.$this->getTableName($entity).'` ('.$columns.') VALUES ';
+        $columns = $this->getColumns($first);
+        $sql = 'REPLACE INTO `'.$this->getTableName($entity).'` (`'.implode('`, `', $columns).'`) VALUES ';
         $sql .= $this->buildQuestionMarks($data);
 
         $data = $this->inLineArray($data);
-        $stmt = $this->em->getConnection()->prepare($sql);
+        if (count($data) % count($columns) !== 0) {
+            throw new \LogicException('Insert value list does not match column list');
+        }
 
-        $return = $stmt->execute($data);
+        $return = $this->em->getConnection()->prepare($sql)->execute($data);
 
         $this->em->flush();
         $this->em->clear();
