@@ -12,6 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
  *    }
  * )
  * @ORM\Entity(repositoryClass="Hotfix\Bundle\GeoNameBundle\Repository\FeatureRepository")
+ *
  * @see http://www.geonames.org/export/codes.html
  */
 class Feature
@@ -52,38 +53,38 @@ class Feature
     {
         return $this->class;
     }
-    
+
     public function setClass(?string $class): self
     {
         $this->class = $class;
 
         return $this;
     }
-    
+
     public function getCode(): ?string
     {
         return $this->code;
     }
-    
+
     public function setCode(?string $code): self
     {
         $this->code = $code;
 
         return $this;
     }
-    
+
     public function getName(): ?string
     {
         return $this->name;
     }
-    
+
     public function setName(?string $name): self
     {
         $this->name = $name;
 
         return $this;
     }
-    
+
     public function getDescription(): ?string
     {
         return $this->description;

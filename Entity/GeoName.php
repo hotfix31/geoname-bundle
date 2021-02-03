@@ -22,19 +22,18 @@ class GeoName
     protected ?int $id = null;
 
     /**
-     * name of geographical point (utf8) varchar(200)
+     * name of geographical point (utf8) varchar(200).
      *
      * @ORM\Column(name="name", type="string", length=200, nullable=false)
      */
     protected ?string $name = null;
 
     /**
-     * name of geographical point in plain ascii characters, varchar(200)
+     * name of geographical point in plain ascii characters, varchar(200).
      *
      * @ORM\Column(name="ascii_name", type="string", length=200, nullable=true)
      */
     protected ?string $asciiName = null;
-
 
     /**
      * @ORM\Column(name="latitude", type="float", scale=6, precision=9, nullable=true)
@@ -53,7 +52,7 @@ class GeoName
     protected ?Feature $feature = null;
 
     /**
-     * ISO-3166 2-letter country code, 2 characters
+     * ISO-3166 2-letter country code, 2 characters.
      *
      * @ORM\Column(name="country_code", type="string", length=2, nullable=true)
      */
@@ -66,7 +65,7 @@ class GeoName
     protected ?Country $country = null;
 
     /**
-     * alternate country codes, comma separated, ISO-3166 2-letter country code, 200 characters
+     * alternate country codes, comma separated, ISO-3166 2-letter country code, 200 characters.
      *
      * @ORM\Column(name="cc2", type="string", length=200, nullable=true)
      */
@@ -102,7 +101,7 @@ class GeoName
     protected ?int $population = null;
 
     /**
-     * in meters, integer
+     * in meters, integer.
      *
      * @ORM\Column(name="elevation", type="integer", nullable=true)
      */
@@ -116,7 +115,7 @@ class GeoName
     protected ?int $dem = null;
 
     /**
-     * the iana timezone id
+     * the iana timezone id.
      *
      * @ORM\ManyToOne(targetEntity=Timezone::class)
      * @ORM\JoinColumn(name="timezone_id", referencedColumnName="id", nullable=true)
@@ -124,7 +123,7 @@ class GeoName
     protected ?Timezone $timezone = null;
 
     /**
-     * date of last modification in yyyy-MM-dd format
+     * date of last modification in yyyy-MM-dd format.
      *
      * @ORM\Column(name="modification_date", type="date", nullable=true)
      */

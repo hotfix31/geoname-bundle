@@ -3,12 +3,16 @@
     "type": "symfony-bundle",
     "description": "Symfony GeoNameBundle",
     "keywords": ["geoname", "geonameid"],
-    "homepage": "https://github.com/Hotfix/geoname-bundle",
+    "homepage": "https://github.com/hotfix31/geoname-bundle",
     "license": "MIT",
     "authors": [
         {
             "name": "Krzysztof Bednarczyk",
             "email": "krzysztof@bednarczyk.me"
+        },
+        {
+            "name": "Frédéric Le Barzic",
+            "email": "fred@lebarzic.fr"
         }
     ],
     "require": {
@@ -18,7 +22,6 @@
         "symfony/dependency-injection": ">=5.0",
         "symfony/http-client": ">=5.0",
         "doctrine/doctrine-bundle": ">=1.6",
-		"guzzlehttp/promises": ">=1.0",
         "league/csv": "^9.6"
     },
     "require-dev": {

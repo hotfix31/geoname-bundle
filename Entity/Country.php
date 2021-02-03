@@ -343,7 +343,7 @@ class Country
         return $this->neighbours;
     }
 
-    public function addNeighbour(Country $neighbour): self
+    public function addNeighbour(self $neighbour): self
     {
         if (!$this->neighbours->contains($neighbour)) {
             $this->neighbours->add($neighbour);
@@ -353,7 +353,7 @@ class Country
         return $this;
     }
 
-    public function removeNeighbour(Country $neighbour): self
+    public function removeNeighbour(self $neighbour): self
     {
         if ($this->neighbours->contains($neighbour)) {
             $this->neighbours->removeElement($neighbour);

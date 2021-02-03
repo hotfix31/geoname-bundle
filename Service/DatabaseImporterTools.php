@@ -23,12 +23,13 @@ final class DatabaseImporterTools
      */
     public function disableAutoIncrement($entity): void
     {
-        if (!is_string($entity)) {
-            $entity = get_class($entity);
+        if (!\is_string($entity)) {
+            $entity = \get_class($entity);
         }
 
         $metadata = $this->em->getClassMetaData($entity);
-        if ($metadata->generatorType !== ClassMetadata::GENERATOR_TYPE_CUSTOM) {
+
+        if (ClassMetadata::GENERATOR_TYPE_CUSTOM !== $metadata->generatorType) {
             if (!isset($this->idGenerator[$entity])) {
                 $this->idGenerator[$entity] = [$metadata->generatorType, $metadata->idGenerator];
             }
@@ -43,8 +44,8 @@ final class DatabaseImporterTools
      */
     public function restoreAutoIncrement($entity): void
     {
-        if (!is_string($entity)) {
-            $entity = get_class($entity);
+        if (!\is_string($entity)) {
+            $entity = \get_class($entity);
         }
 
         if (!isset($this->idGenerator[$entity])) {
@@ -61,7 +62,7 @@ final class DatabaseImporterTools
 
     /**
      * @param object|string $entity
-     * @param string[] $joinTables
+     * @param string[]      $joinTables
      */
     public function truncate($entity, array $joinTables = []): void
     {
@@ -75,6 +76,7 @@ final class DatabaseImporterTools
         }
 
         $connection->executeStatement($platform->getTruncateTableSQL($tableName, false));
+
         foreach ($joinTables as $joinTable) {
             $connection->executeStatement($platform->getTruncateTableSQL($joinTable, false));
         }
@@ -89,8 +91,8 @@ final class DatabaseImporterTools
      */
     public function getTableName($entity): string
     {
-        if (!is_string($entity)) {
-            $entity = get_class($entity);
+        if (!\is_string($entity)) {
+            $entity = \get_class($entity);
         }
 
         $metadata = $this->em->getClassMetaData($entity);
@@ -99,7 +101,7 @@ final class DatabaseImporterTools
     }
 
     /**
-     * @param object|string $entity
+     * @param object|string              $entity
      * @param array<array<string,mixed>> $data
      */
     public function replace($entity, array $data): bool
@@ -108,11 +110,12 @@ final class DatabaseImporterTools
         $first = $this->getFirstRow($data);
 
         $columns = $this->getColumns($first);
-        $sql = 'REPLACE INTO `'.$this->getTableName($entity).'` (`'.implode('`, `', $columns).'`) VALUES ';
+        $sql = 'REPLACE INTO `' . $this->getTableName($entity) . '` (`' . \implode('`, `', $columns) . '`) VALUES ';
         $sql .= $this->buildQuestionMarks($data);
 
         $data = $this->inLineArray($data);
-        if (count($data) % count($columns) !== 0) {
+
+        if (0 !== \count($data) % \count($columns)) {
             throw new \LogicException('Insert value list does not match column list');
         }
 
@@ -139,7 +142,8 @@ final class DatabaseImporterTools
         }
 
         [$first,] = $data;
-        if (!is_array($first)) {
+
+        if (!\is_array($first)) {
             throw new \InvalidArgumentException('$data is not an array of array.');
         }
 
@@ -148,11 +152,11 @@ final class DatabaseImporterTools
 
     private function getColumns($row): array
     {
-        $columns = array_keys($row);
+        $columns = \array_keys($row);
 
-        return array_map(
+        return \array_map(
             static function ($v) {
-                return str_replace('`', '``', $v);
+                return \str_replace('`', '``', $v);
             },
             $columns
         );
@@ -161,22 +165,24 @@ final class DatabaseImporterTools
     private function buildQuestionMarks($data): string
     {
         $lines = [];
+
         foreach ($data as $row) {
-            $count = count($row);
+            $count = \count($row);
             $questions = [];
+
             for ($i = 0; $i < $count; ++$i) {
                 $questions[] = '?';
             }
 
-            $lines[] = '('.implode(',', $questions).')';
+            $lines[] = '(' . \implode(',', $questions) . ')';
         }
 
-        return implode(', ', $lines);
+        return \implode(', ', $lines);
     }
 
     private function inLineArray(array $data): array
     {
-        return array_merge(...array_map('array_values', $data));
+        return \array_merge(...\array_map('array_values', $data));
     }
 
     public function restoreLogger(): void

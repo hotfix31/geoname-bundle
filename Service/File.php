@@ -3,7 +3,6 @@
 namespace Hotfix\Bundle\GeoNameBundle\Service;
 
 use League\Csv\Reader;
-use League\Csv\TabularDataReader;
 
 class File extends \SplFileObject
 {
@@ -17,17 +16,18 @@ class File extends \SplFileObject
 
     public function getCountLines(): int
     {
-        if ($this->countLines === null) {
+        if (null === $this->countLines) {
             if (!$this->isReadable()) {
                 throw new \LogicException('file cannot be read.');
             }
 
             $this->seek(0);
             $this->countLines = 0;
+
             while ($this->valid()) {
                 try {
                     $this->fgets();
-                    $this->countLines++;
+                    ++$this->countLines;
                 } catch (\RuntimeException $e) {
                     // continue
                 }
@@ -37,17 +37,18 @@ class File extends \SplFileObject
         return $this->countLines;
     }
 
-    public function unzip(string $mode = 'r'): File
+    public function unzip(string $mode = 'r'): self
     {
-        if ($this->getExtension() !== 'zip') {
+        if ('zip' !== $this->getExtension()) {
             throw new \LogicException('unzip method works only with zip file.');
         }
 
-        $filenameUnzip = str_replace('.zip', '.txt', $this->getRealPath());
-        if (!file_exists($filenameUnzip) || filectime($filenameUnzip) < $this->getCTime()) {
+        $filenameUnzip = \str_replace('.zip', '.txt', $this->getRealPath());
+
+        if (!\file_exists($filenameUnzip) || \filectime($filenameUnzip) < $this->getCTime()) {
             $zip = new \ZipArchive();
             $zip->open($this->getRealPath());
-            $zip->extractTo(dirname($this->getRealPath()), [$this->getBasename('.zip').'.txt']);
+            $zip->extractTo(\dirname($this->getRealPath()), [$this->getBasename('.zip') . '.txt']);
             $zip->close();
         }
 

@@ -13,49 +13,35 @@ use Hotfix\Bundle\GeoNameBundle\Service\File;
 use League\Csv\Reader;
 use League\Csv\Statement;
 use League\Csv\TabularDataReader;
-use Symfony\Component\Stopwatch\Stopwatch;
 
 class GeoNameImport implements ImportInterface
 {
+    use GeoNameExistsTrait;
+
     private EntityManagerInterface $em;
     private DatabaseImporterTools $databaseImporterTools;
     private array $references = [];
+    private array $administrativeGeonameIds = [];
     private ?int $countLines = null;
-    protected Stopwatch $stopwatch;
 
-    public function __construct(EntityManagerInterface $em, DatabaseImporterTools $databaseImporterTools, Stopwatch $stopwatch)
+    public function __construct(EntityManagerInterface $em, DatabaseImporterTools $databaseImporterTools)
     {
         $this->em = $em;
         $this->databaseImporterTools = $databaseImporterTools;
-        $this->stopwatch = $stopwatch;
-    }
-
-    public function getCountLines(): ?int
-    {
-        return $this->countLines;
-    }
-
-    protected function setCountLines(?int $countLines): self
-    {
-        $this->countLines = $countLines;
-
-        return $this;
     }
 
     public function import(File $file, ?callable $progress = null): void
     {
-        $this->stopwatch->start('CSV Reader', 'import');
         $csv = $this->getCsvReader($file);
-        $this->stopwatch->stop('CSV Reader');
 
         $pos = 0;
         $replaces = [];
         $max = $this->getCountLines();
 
         $this->em->beginTransaction();
-        $this->stopwatch->start('CSV parser', 'import');
+
         foreach ($csv as $row) {
-            $row = array_map('trim', $row);
+            $row = \array_map('trim', $row);
             unset($row['alternatenames']);
 
             $data = [
@@ -65,7 +51,7 @@ class GeoNameImport implements ImportInterface
                 'latitude' => $row['latitude'] ?? null,
                 'longitude' => $row['longitude'] ?? null,
                 'country_code' => $row['country_code'] ?? null,
-                'cc2' => $row['cc2'] ?? null,
+                'cc2' => '' !== $row['cc2'] ? $row['cc2'] : null,
                 'modification_date' => $row['modification_date'] ?? (new \DateTime())->format('Y-m-d'),
                 'population' => $row['population'] ? (int) $row['population'] : null,
                 'elevation' => $row['elevation'] ? (int) $row['elevation'] : null,
@@ -76,30 +62,34 @@ class GeoNameImport implements ImportInterface
             $data['timezone_id'] = $this->getReferenceTimezone($row['timezone']);
             $data['country_id'] = $this->getReferenceCountry($row['country_code']);
 
-            foreach (range(1, 4) as $number) {
+            $admCode = [$row['country_code']];
+
+            for ($number = 1; $number < 5; ++$number) {
                 $keyCode = "admin${number}Code";
                 $keyId = "admin${number}_id";
 
-                $data[$keyId] = (!empty($row[$keyCode])) ? $this->getReferenceAdministrative($row[$keyCode]) : null;
+                $data[$keyId] = null;
+
+                if (!empty($row[$keyCode])) {
+                    $admCode[] = $row[$keyCode];
+                    $data[$keyId] = $this->getReferenceAdministrative(\implode('.', $admCode));
+                }
             }
 
             $replaces[] = $data;
-            is_callable($progress) && $progress(($pos++) / $max);
+            \is_callable($progress) && $progress(($pos++) / $max);
 
-            if ($pos%1000) {
-                $this->stopwatch->start('replace in loop', 'import');
+            if ($pos % 1000) {
                 $this->databaseImporterTools->replace(GeoName::class, $replaces);
                 $replaces = [];
-                $this->stopwatch->stop('replace in loop');
             }
         }
-        $this->stopwatch->stop('CSV parser');
 
-        $this->stopwatch->start('em flush and clear', 'import');
         $this->em->flush();
         $this->em->commit();
         $this->em->clear();
-        $this->stopwatch->stop('em flush and clear');
+
+        $this->updateAdministrativeTable();
     }
 
     public function getCsvReader(File $file): TabularDataReader
@@ -139,9 +129,30 @@ class GeoNameImport implements ImportInterface
             );
     }
 
-    public function supports(string $support): bool
+    public function getCountLines(): ?int
     {
-        return $support === 'geonames';
+        return $this->countLines;
+    }
+
+    protected function setCountLines(?int $countLines): self
+    {
+        $this->countLines = $countLines;
+
+        return $this;
+    }
+
+    public function getReferenceFeature(string $class, string $code): ?int
+    {
+        return $this->getReference(
+            Feature::class,
+            [$class, $code],
+            function (string $table, string $class, string $code) {
+                return $this->em->getConnection()->executeStatement(
+                    'SELECT id FROM ' . $table . ' WHERE class = ? AND code = ?',
+                    [$class, $code]
+                );
+            }
+        );
     }
 
     private function getReference(string $entity, array $keys, callable $resolve): ?int
@@ -150,13 +161,28 @@ class GeoNameImport implements ImportInterface
             $this->references[$entity] = [];
         }
 
-        $hash = md5(serialize($keys));
+        $hash = \md5(\serialize($keys));
+
         if (!isset($this->references[$entity][$hash])) {
             $table = $this->databaseImporterTools->getTableName($entity);
             $this->references[$entity][$hash] = (int) $resolve($table, ...$keys);
         }
 
-        return $this->references[$entity][$hash] === 0 ? null : $this->references[$entity][$hash];
+        return 0 === $this->references[$entity][$hash] ? null : $this->references[$entity][$hash];
+    }
+
+    public function getReferenceTimezone(string $timezone): ?int
+    {
+        return $this->getReference(
+            Timezone::class,
+            [$timezone],
+            function (string $table, string $timezone) {
+                return $this->em->getConnection()->executeStatement(
+                    'SELECT id FROM ' . $table . ' WHERE timezone = ?',
+                    [$timezone]
+                );
+            }
+        );
     }
 
     public function getReferenceCountry(string $countryCode): ?int
@@ -166,7 +192,7 @@ class GeoNameImport implements ImportInterface
             [$countryCode],
             function (string $table, string $countryCode) {
                 return $this->em->getConnection()->executeStatement(
-                    'SELECT id FROM '.$table.' WHERE iso = ?',
+                    'SELECT id FROM ' . $table . ' WHERE iso = ?',
                     [$countryCode]
                 );
             }
@@ -180,38 +206,43 @@ class GeoNameImport implements ImportInterface
             [$adminCode],
             function (string $table, string $adminCode) {
                 return $this->em->getConnection()->executeStatement(
-                    'SELECT id FROM '.$table.' WHERE code = ?',
+                    'SELECT id FROM ' . $table . ' WHERE code = ?',
                     [$adminCode]
                 );
             }
         );
     }
 
-    public function getReferenceFeature(string $class, string $code): ?int
+    private function updateAdministrativeTable(): void
     {
-        return $this->getReference(
-            Feature::class,
-            [$class, $code],
-            function (string $table, string $class, string $code) {
-                return $this->em->getConnection()->executeStatement(
-                    'SELECT id FROM '.$table.' WHERE class = ? AND code = ?',
-                    [$class, $code]
-                );
+        if (!$this->administrativeGeonameIds) {
+            return;
+        }
+
+        $validAdministrativeIds = \array_filter(
+            $this->administrativeGeonameIds,
+            function (array $row) {
+                return $this->geoNameExists($row['geoname_id']);
             }
         );
+
+        $table = $this->databaseImporterTools->getTableName(Administrative::class);
+        $stmt = $this->em->getConnection()->prepare('UPDATE ' . $table . ' SET geoname_id = ? WHERE code = ?');
+
+        foreach ($validAdministrativeIds as $row) {
+            $stmt->execute([$row['geoname_id'], $row['code']]);
+        }
     }
 
-    public function getReferenceTimezone(string $timezone): ?int
+    public function supports(string $support): bool
     {
-        return $this->getReference(
-            Timezone::class,
-            [$timezone],
-            function (string $table, string $timezone) {
-                return $this->em->getConnection()->executeStatement(
-                    'SELECT id FROM '.$table.' WHERE timezone = ?',
-                    [$timezone]
-                );
-            }
-        );
+        return 'geonames' === $support;
+    }
+
+    public function addAdministrativeGeonameIds(string $adminCode, int $geonameId): self
+    {
+        $this->administrativeGeonameIds[$adminCode] = ['code' => $adminCode, 'geoname_id' => $geonameId];
+
+        return $this;
     }
 }

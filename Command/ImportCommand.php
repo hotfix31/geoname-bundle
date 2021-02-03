@@ -48,6 +48,10 @@ class ImportCommand extends Command
             'url' => 'https://download.geonames.org/export/dump/hierarchy.zip',
             'shortcut' => 'i',
         ],
+        'alternate-names' => [
+            'url' => 'https://download.geonames.org/export/dump/alternateNamesV2.zip',
+            'shortcut' => 'l',
+        ],
     ];
 
     public function __construct(Downloader $downloader, Importer $importer, string $cacheDir, string $name = null)
@@ -75,54 +79,56 @@ class ImportCommand extends Command
                 $name,
                 $options['shortcut'],
                 InputOption::VALUE_REQUIRED,
-                sprintf('%s files', ucfirst($name)),
+                \sprintf('%s files', \ucfirst($name)),
                 $options['url']
             );
 
             $this->addOption(
-                sprintf('skip-%s', $name),
+                \sprintf('skip-%s', $name),
                 null,
                 InputOption::VALUE_NONE,
-                sprintf('options to skip import %s', $name)
+                \sprintf('options to skip import %s', $name)
             );
         }
     }
 
-    protected function processDownload(InputInterface $input, OutputInterface $output, string $downloadDir): iterable
+    protected function processDownload(InputInterface $input, OutputInterface $output, string $downloadDir, ?array $batchImport = null): iterable
     {
-        foreach ($this->imports as $name => $options) {
-            if ($input->hasOption('skip-'.$name) && $input->getOption('skip-'.$name)) {
+        foreach ($batchImport ?? $this->imports as $name => $options) {
+            if ($input->hasOption('skip-' . $name) && $input->getOption('skip-' . $name)) {
                 continue;
             }
 
             $url = $input->getOption($name);
-            $file = $downloadDir.DIRECTORY_SEPARATOR.basename($url);
+            $file = $downloadDir . \DIRECTORY_SEPARATOR . \basename($url);
 
             $this->downloadWithProgressBar($url, $file, $output);
             $output->writeln('');
 
-            yield $name => $file;
+            yield $name => ['file' => $file, 'options' => $options];
         }
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $downloadDir = $input->getOption('download-dir') ?: $this->cacheDir.DIRECTORY_SEPARATOR.'geoname';
-        if (!file_exists($downloadDir) && !mkdir($downloadDir, 0700, true) && !is_dir($downloadDir)) {
-            $output->writeln('<error>Error on create download directory. ('.$downloadDir.')</error>');
+        $downloadDir = $input->getOption('download-dir') ?: $this->cacheDir . \DIRECTORY_SEPARATOR . 'geoname';
+
+        if (!\file_exists($downloadDir) && !\mkdir($downloadDir, 0700, true) && !\is_dir($downloadDir)) {
+            $output->writeln('<error>Error on create download directory. (' . $downloadDir . ')</error>');
 
             return 15;
         }
 
-        if (!is_writable($downloadDir)) {
-            $output->writeln('<error>Error download directory is not writeable. ('.$downloadDir.')</error>');
+        if (!\is_writable($downloadDir)) {
+            $output->writeln('<error>Error download directory is not writeable. (' . $downloadDir . ')</error>');
 
             return 20;
         }
 
-        $downloadDir = realpath($downloadDir);
-        foreach ($this->processDownload($input, $output, $downloadDir) as $field => $file) {
-            $this->importWithProgressBar($field, $file, $output);
+        $downloadDir = \realpath($downloadDir);
+
+        foreach ($this->processDownload($input, $output, $downloadDir) as $field => $import) {
+            $this->importWithProgressBar($field, $import['file'], $output);
             $output->writeln('');
         }
 
@@ -157,8 +163,8 @@ class ImportCommand extends Command
 
     public function downloadWithProgressBar(string $url, string $saveAs, OutputInterface $output): void
     {
-        if (file_exists($saveAs)) {
-            $output->write($saveAs." exists in the cache.");
+        if (\file_exists($saveAs)) {
+            $output->write($saveAs . ' exists in the cache.');
 
             return;
         }
@@ -171,7 +177,7 @@ class ImportCommand extends Command
             $url,
             $saveAs,
             function ($percent) use ($progress) {
-                $progress->setProgress((int)($percent * 100));
+                $progress->setProgress((int) ($percent * 100));
             }
         );
 

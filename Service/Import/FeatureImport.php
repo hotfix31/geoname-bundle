@@ -16,6 +16,7 @@ class FeatureImport extends ImportAbstract
     protected function getCsvReader(File $file): TabularDataReader
     {
         $csv = parent::getCsvReader($file);
+
         if ($csv instanceof Reader) {
             $csv->setHeaderOffset(null);
         }
@@ -40,7 +41,7 @@ class FeatureImport extends ImportAbstract
 
     public function supports(string $support): bool
     {
-        return $support === 'feature-codes';
+        return 'feature-codes' === $support;
     }
 
     /**
@@ -48,12 +49,12 @@ class FeatureImport extends ImportAbstract
      */
     protected function processRow(array $row): ?object
     {
-        if ($row['featureCode'] === 'null') {
+        if ('null' === $row['featureCode']) {
             return null;
         }
 
-        [$featureCode, $name, $description] = array_values($row);
-        [$class, $code] = explode('.', $featureCode);
+        [$featureCode, $name, $description] = \array_values($row);
+        [$class, $code] = \explode('.', $featureCode);
 
         $object = $this->findByFeatureCodeOrCreateNew($class, $code);
         $object->setClass($class);

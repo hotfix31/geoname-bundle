@@ -18,7 +18,7 @@ class Timezone implements \Stringable
     protected ?int $id = null;
 
     /**
-     * the iana timezone id
+     * the iana timezone id.
      *
      * @ORM\Column(type="string", length=50, unique=true)
      */
@@ -57,6 +57,7 @@ class Timezone implements \Stringable
     public function setTimezone(?string $timezone): self
     {
         $this->timezone = $timezone;
+
         return $this;
     }
 
@@ -68,6 +69,7 @@ class Timezone implements \Stringable
     public function setCountryCode(string $countryCode): self
     {
         $this->countryCode = $countryCode;
+
         return $this;
     }
 
@@ -79,6 +81,7 @@ class Timezone implements \Stringable
     public function setGmtOffset(float $gmtOffset): self
     {
         $this->gmtOffset = $gmtOffset;
+
         return $this;
     }
 
@@ -90,6 +93,7 @@ class Timezone implements \Stringable
     public function setDstOffset(float $dstOffset): self
     {
         $this->dstOffset = $dstOffset;
+
         return $this;
     }
 
@@ -101,6 +105,7 @@ class Timezone implements \Stringable
     public function setRawOffset($rawOffset): self
     {
         $this->rawOffset = $rawOffset;
+
         return $this;
     }
 

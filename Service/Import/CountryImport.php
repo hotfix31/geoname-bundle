@@ -17,6 +17,7 @@ class CountryImport extends ImportAbstract
     protected function getCsvReader(File $file): TabularDataReader
     {
         $csv = parent::getCsvReader($file);
+
         if ($csv instanceof Reader) {
             $csv->setHeaderOffset(null);
         }
@@ -34,7 +35,7 @@ class CountryImport extends ImportAbstract
 
     public function supports(string $support): bool
     {
-        return $support === 'countries';
+        return 'countries' === $support;
     }
 
     /**
@@ -43,7 +44,7 @@ class CountryImport extends ImportAbstract
     protected function processRow(array $row): ?object
     {
         // skip comment lines
-        if ($row[0][0] === '#') {
+        if ('#' === $row[0][0]) {
             return null;
         }
 
@@ -68,7 +69,7 @@ class CountryImport extends ImportAbstract
             $neighbours,
         ] = $row;
 
-        if (!is_numeric($geoNameId)) {
+        if (!\is_numeric($geoNameId)) {
             return null;
         }
 
@@ -87,18 +88,21 @@ class CountryImport extends ImportAbstract
             ->setCurrency($currency ?: null)
             ->setCurrencyName($currencyName ?: null);
 
-        $phone = explode(' and ', $phone ?: '');
-        $phone = reset($phone);
-        $phone = preg_replace('/\D/', '', $phone);
+        $phone = \explode(' and ', $phone ?: '');
+        $phone = \reset($phone);
+        $phone = \preg_replace('/\D/', '', $phone);
         $object->setPhonePrefix($phone ?: null);
 
         $object->setPostalFormat($postalFormat ?: null);
         $object->setPostalRegex($postalRegex ?: null);
-        $object->setLanguages(explode(',', $languages) ?: null);
-        $object->setGeoName($this->em->getReference(GeoName::class, $geoNameId));
+        $object->setLanguages(\explode(',', $languages) ?: null);
+
+        /** @var GeoName $geoName */
+        $geoName = $this->em->getReference(GeoName::class, $geoNameId);
+        $object->setGeoName($geoName);
 
         if (!empty($neighbours)) {
-            $this->neighbours[$iso] = explode(',', $neighbours);
+            $this->neighbours[$iso] = \explode(',', $neighbours);
         }
 
         return $object;
@@ -109,7 +113,7 @@ class CountryImport extends ImportAbstract
         $table = $this->databaseImporterTools->getTableName(Country::class);
         $neighboursMapping = $this->em->getClassMetaData(Country::class)->associationMappings['neighbours'];
 
-        $query = sprintf(
+        $query = \sprintf(
             'REPLACE INTO %1$s (%2$s, %3$s) VALUES (
                      (SELECT id FROM %4$s _c1 WHERE _c1.iso = ? LIMIT 1),
                      (SELECT id FROM %4$s _c2 WHERE _c2.iso = ? LIMIT 1)
@@ -147,10 +151,10 @@ class CountryImport extends ImportAbstract
         $countryTableName = $this->databaseImporterTools->getTableName(Country::class);
 
         $sql = <<<UpdateSelect
-            UPDATE {$geoNameTableName} SET country_id = (
-                SELECT id FROM {$countryTableName} _c WHERE _c.iso = {$geoNameTableName}.country_code LIMIT 1
-            )
-UpdateSelect;
+                        UPDATE {$geoNameTableName} SET country_id = (
+                            SELECT id FROM {$countryTableName} _c WHERE _c.iso = {$geoNameTableName}.country_code LIMIT 1
+                        )
+            UpdateSelect;
 
         $this->em
             ->getConnection()

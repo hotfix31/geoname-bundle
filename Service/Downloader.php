@@ -16,19 +16,21 @@ class Downloader
     public function download(string $url, string $saveAs, ?callable $progress = null): void
     {
         $options = [];
-        if ($progress && is_callable($progress)) {
+
+        if ($progress && \is_callable($progress)) {
             $options['on_progress'] = static function (int $dlNow, int $dlSize, array $info) use ($progress) {
                 $dlSize && $progress($dlNow / $dlSize);
             };
         }
 
         $request = $this->httpClient->request('GET', $url, $options);
+
         foreach ($this->httpClient->stream($request) as $chunk => $response) {
             if (!$response->isLast()) {
                 continue;
             }
 
-            file_put_contents($saveAs, $chunk->getContent());
+            \file_put_contents($saveAs, $chunk->getContent());
         }
     }
 }

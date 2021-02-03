@@ -32,28 +32,31 @@ abstract class ImportAbstract implements ImportInterface
     public function import(File $file, ?callable $progress = null): void
     {
         $csv = $this->getCsvReader($file);
-        $max = count($csv);
+        $max = \count($csv);
+
         if ($this->flushModulo >= $max) {
-            $this->flushModulo = round($max/3);
+            $this->flushModulo = \round($max / 3);
         }
 
         $this->databaseImporterTools->disabledLogger();
 
         $pos = 0;
         $this->em->beginTransaction();
+
         foreach ($csv as $row) {
-            $row = array_map('trim', $row);
+            $row = \array_map('trim', $row);
             $object = $this->processRow($row);
+
             if (!$object) {
                 continue;
             }
 
-            !$object->getId() && $this->em->persist($object);
+            $this->em->persist($object);
+            \is_callable($progress) && $progress(($pos++) / $max);
+
             if ($pos % $this->flushModulo) {
                 $this->em->flush();
                 $this->em->clear();
-
-                is_callable($progress) && $progress(($pos++) / $max);
             }
         }
 

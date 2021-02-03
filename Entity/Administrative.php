@@ -23,14 +23,14 @@ class Administrative
     protected ?string $code = null;
 
     /**
-     * name of geographical point (utf8) varchar(200)
+     * name of geographical point (utf8) varchar(200).
      *
      * @ORM\Column(type="string", length=200)
      */
     protected ?string $name = null;
 
     /**
-     * name of geographical point in plain ascii characters, varchar(200)
+     * name of geographical point in plain ascii characters, varchar(200).
      *
      * @ORM\Column(type="string", length=200, nullable=true)
      */
@@ -38,7 +38,7 @@ class Administrative
 
     /**
      * @ORM\ManyToOne(targetEntity=GeoName::class)
-     * @ORM\JoinColumn(referencedColumnName="id", nullable=true)
+     * @ORM\JoinColumn(name="geoname_id", referencedColumnName="id", nullable=true)
      */
     protected ?GeoName $geoName = null;
 
@@ -55,6 +55,7 @@ class Administrative
     public function setCode(string $code): self
     {
         $this->code = $code;
+
         return $this;
     }
 
@@ -66,6 +67,7 @@ class Administrative
     public function setName(string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -77,6 +79,7 @@ class Administrative
     public function setAsciiName(string $asciiName): self
     {
         $this->asciiName = $asciiName;
+
         return $this;
     }
 
@@ -88,6 +91,7 @@ class Administrative
     public function setGeoName(GeoName $geoName): self
     {
         $this->geoName = $geoName;
+
         return $this;
     }
 }

@@ -25,12 +25,12 @@ class TimezoneImport extends ImportAbstract
 
     public function supports(string $support): bool
     {
-        return $support === 'timezones';
+        return 'timezones' === $support;
     }
 
     protected function processRow(array $row): ?object
     {
-        [$countryCode, $timezone, $gmtOffset, $dstOffset, $rawOffset] = array_values($row);
+        [$countryCode, $timezone, $gmtOffset, $dstOffset, $rawOffset] = \array_values($row);
 
         $object = $this->findByTimezoneOrCreateNew($timezone);
         $object->setTimezone($timezone);
