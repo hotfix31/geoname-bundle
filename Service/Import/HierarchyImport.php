@@ -15,7 +15,7 @@ class HierarchyImport extends ImportAbstract
 
     protected function getCsvReader(File $file): TabularDataReader
     {
-        $this->databaseImporterTools->truncate(Hierarchy::class);
+        $this->databaseImporter->truncate(Hierarchy::class);
 
         $file2 = $file->unzip();
         $csv = parent::getCsvReader($file2);

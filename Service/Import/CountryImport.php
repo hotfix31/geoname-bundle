@@ -110,7 +110,7 @@ class CountryImport extends ImportAbstract
 
     protected function processNeighbours(): void
     {
-        $table = $this->databaseImporterTools->getTableName(Country::class);
+        $table = $this->databaseImporter->getTableName(Country::class);
         $neighboursMapping = $this->em->getClassMetaData(Country::class)->associationMappings['neighbours'];
 
         $query = \sprintf(
@@ -147,8 +147,8 @@ class CountryImport extends ImportAbstract
 
     private function updateGeoNameTable(): void
     {
-        $geoNameTableName = $this->databaseImporterTools->getTableName(GeoName::class);
-        $countryTableName = $this->databaseImporterTools->getTableName(Country::class);
+        $geoNameTableName = $this->databaseImporter->getTableName(GeoName::class);
+        $countryTableName = $this->databaseImporter->getTableName(Country::class);
 
         $sql = <<<UpdateSelect
                         UPDATE {$geoNameTableName} SET country_id = (

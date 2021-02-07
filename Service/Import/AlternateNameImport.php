@@ -20,7 +20,7 @@ class AlternateNameImport extends ImportAbstract
 
     protected function getCsvReader(File $file): TabularDataReader
     {
-        $this->databaseImporterTools->truncate(AlternateName::class);
+        $this->databaseImporter->truncate(AlternateName::class);
 
         $file2 = $file->unzip();
         $csv = parent::getCsvReader($file2);

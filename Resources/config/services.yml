@@ -12,7 +12,7 @@ services:
 
     Hotfix\Bundle\GeoNameBundle\Service\Downloader:
 
-    Hotfix\Bundle\GeoNameBundle\Service\DatabaseImporterTools:
+    Hotfix\Bundle\GeoNameBundle\Service\DatabaseImporter:
 
     Hotfix\Bundle\GeoNameBundle\Command\ImportCommand:
         arguments:

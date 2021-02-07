@@ -3,20 +3,20 @@
 namespace Hotfix\Bundle\GeoNameBundle\Service\Import;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Hotfix\Bundle\GeoNameBundle\Service\DatabaseImporterTrait;
+use Hotfix\Bundle\GeoNameBundle\Service\DatabaseImporter;
 use Hotfix\Bundle\GeoNameBundle\Service\File;
 use League\Csv\TabularDataReader;
 
 abstract class ImportAbstract implements ImportInterface
 {
     protected EntityManagerInterface $em;
-    protected DatabaseImporterTrait $databaseImporterTools;
+    protected DatabaseImporter $databaseImporter;
     protected int $flushModulo = 1000;
 
-    public function __construct(EntityManagerInterface $em, DatabaseImporterTrait $databaseImporterTools)
+    public function __construct(EntityManagerInterface $em, DatabaseImporter $databaseImporter)
     {
         $this->em = $em;
-        $this->databaseImporterTools = $databaseImporterTools;
+        $this->databaseImporter = $databaseImporter;
     }
 
     protected function getCsvReader(File $file): TabularDataReader
@@ -38,7 +38,7 @@ abstract class ImportAbstract implements ImportInterface
             $this->flushModulo = \round($max / 3);
         }
 
-        $this->databaseImporterTools->disabledLogger();
+        $this->databaseImporter->disabledLogger();
 
         $pos = 0;
         $this->em->beginTransaction();
@@ -64,7 +64,7 @@ abstract class ImportAbstract implements ImportInterface
         $this->em->commit();
         $this->em->clear();
 
-        $this->databaseImporterTools->restoreLogger();
+        $this->databaseImporter->restoreLogger();
     }
 
     abstract protected function processRow(array $row): ?object;

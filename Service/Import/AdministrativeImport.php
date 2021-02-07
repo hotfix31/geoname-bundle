@@ -6,7 +6,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Hotfix\Bundle\GeoNameBundle\Entity\Administrative;
 use Hotfix\Bundle\GeoNameBundle\Entity\GeoName;
 use Hotfix\Bundle\GeoNameBundle\Repository\AdministrativeRepository;
-use Hotfix\Bundle\GeoNameBundle\Service\DatabaseImporterTrait;
+use Hotfix\Bundle\GeoNameBundle\Service\DatabaseImporter;
 use Hotfix\Bundle\GeoNameBundle\Service\File;
 use League\Csv\Reader;
 use League\Csv\Statement;
@@ -19,10 +19,10 @@ class AdministrativeImport extends ImportAbstract
     protected GeoNameImport $geoNameImport;
     protected ?AdministrativeRepository $repository = null;
 
-    public function __construct(GeoNameImport $geoNameImport, EntityManagerInterface $em, DatabaseImporterTrait $databaseImporterTools)
+    public function __construct(GeoNameImport $geoNameImport, EntityManagerInterface $em, DatabaseImporter $databaseImporter)
     {
         $this->geoNameImport = $geoNameImport;
-        parent::__construct($em, $databaseImporterTools);
+        parent::__construct($em, $databaseImporter);
     }
 
     protected function getCsvReader(File $file): TabularDataReader
@@ -68,7 +68,7 @@ class AdministrativeImport extends ImportAbstract
         if ($geonameId && $this->geoNameExists($geonameId)) {
             $object->setGeoName($this->em->getReference(GeoName::class, $geonameId));
         } else {
-            $this->geoNameImport->addAdministrativeGeonameIds($code, $geonameId);
+            $this->geoNameImport->addAdministrativeGeoNameIds($code, $geonameId);
         }
 
         return $object;
