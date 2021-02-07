@@ -11,6 +11,8 @@ use League\Csv\TabularDataReader;
 
 class CountryImport extends ImportAbstract
 {
+    use GeoNameExistsTrait;
+
     protected ?CountryRepository $repository = null;
     protected array $neighbours = [];
 
@@ -97,9 +99,11 @@ class CountryImport extends ImportAbstract
         $object->setPostalRegex($postalRegex ?: null);
         $object->setLanguages(\explode(',', $languages) ?: null);
 
-        /** @var GeoName $geoName */
-        $geoName = $this->em->getReference(GeoName::class, $geoNameId);
-        $object->setGeoName($geoName);
+        if ($this->geoNameExists($geoNameId)) {
+            /** @var GeoName $geoName */
+            $geoName = $this->em->getReference(GeoName::class, $geoNameId);
+            $object->setGeoName($geoName);
+        }
 
         if (!empty($neighbours)) {
             $this->neighbours[$iso] = \explode(',', $neighbours);
