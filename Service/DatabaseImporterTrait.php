@@ -7,7 +7,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Id\AssignedGenerator;
 use Doctrine\ORM\Mapping\ClassMetadata;
 
-final class DatabaseImporterTools
+final class DatabaseImporterTrait
 {
     private EntityManagerInterface $em;
     private array $idGenerator = [];

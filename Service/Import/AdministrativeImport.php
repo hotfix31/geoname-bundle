@@ -6,7 +6,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Hotfix\Bundle\GeoNameBundle\Entity\Administrative;
 use Hotfix\Bundle\GeoNameBundle\Entity\GeoName;
 use Hotfix\Bundle\GeoNameBundle\Repository\AdministrativeRepository;
-use Hotfix\Bundle\GeoNameBundle\Service\DatabaseImporterTools;
+use Hotfix\Bundle\GeoNameBundle\Service\DatabaseImporterTrait;
 use Hotfix\Bundle\GeoNameBundle\Service\File;
 use League\Csv\Reader;
 use League\Csv\Statement;
@@ -19,7 +19,7 @@ class AdministrativeImport extends ImportAbstract
     protected GeoNameImport $geoNameImport;
     protected ?AdministrativeRepository $repository = null;
 
-    public function __construct(GeoNameImport $geoNameImport, EntityManagerInterface $em, DatabaseImporterTools $databaseImporterTools)
+    public function __construct(GeoNameImport $geoNameImport, EntityManagerInterface $em, DatabaseImporterTrait $databaseImporterTools)
     {
         $this->geoNameImport = $geoNameImport;
         parent::__construct($em, $databaseImporterTools);

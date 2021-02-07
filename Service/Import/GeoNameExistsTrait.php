@@ -4,10 +4,10 @@ namespace Hotfix\Bundle\GeoNameBundle\Service\Import;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Hotfix\Bundle\GeoNameBundle\Entity\GeoName;
-use Hotfix\Bundle\GeoNameBundle\Service\DatabaseImporterTools;
+use Hotfix\Bundle\GeoNameBundle\Service\DatabaseImporterTrait;
 
 /**
- * @property DatabaseImporterTools  $databaseImporterTools
+ * @property DatabaseImporterTrait  $databaseImporterTools
  * @property EntityManagerInterface $em
  */
 trait GeoNameExistsTrait
@@ -18,10 +18,11 @@ trait GeoNameExistsTrait
     {
         if (!isset($this->geoNameExisting[$id])) {
             $table = $this->databaseImporterTools->getTableName(GeoName::class);
-            $this->geoNameExisting[$id] = (bool) $this->em->getConnection()->executeStatement(
-                'SELECT 1 FROM ' . $table . ' WHERE id = ?',
-                [$id]
-            );
+
+            $stmt = $this->em->getConnection()->prepare('SELECT 1 FROM ' . $table . ' WHERE id = ?');
+            $stmt->execute([$id]);
+
+            $this->geoNameExisting[$id] = (bool) $stmt->rowCount();
         }
 
         return $this->geoNameExisting[$id];

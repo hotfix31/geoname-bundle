@@ -3,17 +3,17 @@
 namespace Hotfix\Bundle\GeoNameBundle\Service\Import;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Hotfix\Bundle\GeoNameBundle\Service\DatabaseImporterTools;
+use Hotfix\Bundle\GeoNameBundle\Service\DatabaseImporterTrait;
 use Hotfix\Bundle\GeoNameBundle\Service\File;
 use League\Csv\TabularDataReader;
 
 abstract class ImportAbstract implements ImportInterface
 {
     protected EntityManagerInterface $em;
-    protected DatabaseImporterTools $databaseImporterTools;
+    protected DatabaseImporterTrait $databaseImporterTools;
     protected int $flushModulo = 1000;
 
-    public function __construct(EntityManagerInterface $em, DatabaseImporterTools $databaseImporterTools)
+    public function __construct(EntityManagerInterface $em, DatabaseImporterTrait $databaseImporterTools)
     {
         $this->em = $em;
         $this->databaseImporterTools = $databaseImporterTools;
