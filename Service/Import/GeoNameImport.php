@@ -25,6 +25,7 @@ class GeoNameImport implements ImportInterface
     protected array $references = [];
     protected array $administrativeGeoNameIds = [];
     protected ?int $countLines = null;
+    protected bool $updateOnly = false;
 
     public function __construct(EntityManagerInterface $em, DatabaseImporter $databaseImporter)
     {
@@ -44,7 +45,9 @@ class GeoNameImport implements ImportInterface
 
         foreach ($csv as $row) {
             $row = \array_map('trim', $row);
-            unset($row['alternatenames']);
+            if ($this->isUpdateOnly() && !$this->geoNameExists((int)$row['id'])) {
+                continue;
+            }
 
             $data = [
                 'id' => (int)$row['id'],
@@ -96,10 +99,13 @@ class GeoNameImport implements ImportInterface
 
     public function getCsvReader(File $file): TabularDataReader
     {
-        $file2 = $file->unzip();
-        $this->setCountLines($file2->getCountLines());
+        if ('zip' === $file->getExtension()) {
+            $file = $file->unzip();
+        }
 
-        $csv = Reader::createFromPath($file2->getRealPath());
+        $this->setCountLines($file->getCountLines());
+
+        $csv = Reader::createFromPath($file->getRealPath());
         $csv->setDelimiter("\t");
         $csv->setHeaderOffset(null);
         $csv->skipEmptyRecords();
@@ -222,12 +228,31 @@ class GeoNameImport implements ImportInterface
 
     public function supports(string $support): bool
     {
+        $this->setUpdateOnly(false);
+        if ('geonames-modification' === $support) {
+            $this->setUpdateOnly(true);
+
+            return true;
+        }
+
         return 'geonames' === $support;
     }
 
     public function addAdministrativeGeoNameIds(string $adminCode, int $geonameId): self
     {
         $this->administrativeGeoNameIds[$adminCode] = ['code' => $adminCode, 'geoname_id' => $geonameId];
+
+        return $this;
+    }
+
+    public function isUpdateOnly(): bool
+    {
+        return $this->updateOnly;
+    }
+
+    public function setUpdateOnly(bool $updateOnly): GeoNameImport
+    {
+        $this->updateOnly = $updateOnly;
 
         return $this;
     }

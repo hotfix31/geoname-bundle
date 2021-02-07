@@ -19,7 +19,7 @@ class ImportCommand extends Command
     private Importer $importer;
     private string $cacheDir;
 
-    private array $imports = [
+    protected array $imports = [
         'feature-codes' => [
             'url' => 'https://download.geonames.org/export/dump/featureCodes_en.txt',
             'shortcut' => 'f',
@@ -92,6 +92,11 @@ class ImportCommand extends Command
         }
     }
 
+    protected function getUrl(InputInterface $input, string $name): string
+    {
+        return $input->getOption($name);
+    }
+
     protected function processDownload(InputInterface $input, OutputInterface $output, string $downloadDir, ?array $batchImport = null): iterable
     {
         foreach ($batchImport ?? $this->imports as $name => $options) {
@@ -99,7 +104,7 @@ class ImportCommand extends Command
                 continue;
             }
 
-            $url = $input->getOption($name);
+            $url = $this->getUrl($input, $name);
             $file = $downloadDir . \DIRECTORY_SEPARATOR . \basename($url);
 
             $this->downloadWithProgressBar($url, $file, $output);
