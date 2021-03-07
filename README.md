@@ -1,12 +1,9 @@
 Geonames Bundle
 ===============
-[![Build Status](https://travis-ci.org/Hotfix/geoname-bundle.svg?branch=master)](https://travis-ci.org/Hotfix/geoname-bundle) [![Coverage Status](https://coveralls.io/repos/github/Hotfix/geoname-bundle/badge.svg?branch=master)](https://coveralls.io/github/Hotfix/geoname-bundle?branch=master)[![Latest Stable Version](https://poser.pugx.org/Hotfix/geoname-bundle/version)](https://packagist.org/packages/Hotfix/geoname-bundle)
-
 # Introduction
 
-Provides access to the data exported by [GeoNames.org][1] into  [Symfony 2][2] and [Symfony 3][2]
-applications.
-
+Provides access to the data exported by [geonames.org][1] into [Symfony 4][2] and [Symfony 5][2]
+applications. Inspired by [bordeux/geoname-bundle](https://github.com/bordeux/geoname-bundle)
 
 ## What is [geonames.org][1]
 
@@ -14,7 +11,6 @@ From the geonames.org website:
 
 > The GeoNames geographical database covers all countries and contains over
 > eight million placenames that are available for download free of charge.
-
 
 ## When to use this bundle
 
@@ -31,6 +27,8 @@ covered worldwide.
     * Timezones
     * States & Provences
     * Cities, Towns, Suburbs, Villages etc.
+    * Alternate names
+    * Hierarchy
 
 - Provides the following data store implementations:
 
@@ -40,30 +38,28 @@ covered worldwide.
 
 1. Install the bundle using composer:
 
-    ```sh
-    composer require Hotfix/geoname-bundle
-    ```
-
+```bash
+composer require hotfix/geoname-bundle
+```
 
 2. Add the bundle to your `AppKernel.php`
 
-    ```php
-    // AppKernel::registerBundles()
-    $bundles = array(
-        // ...
-            new Hotfix\Bundle\GeoNameBundle\HotfixGeoNameBundle(),
-        // ...
-    );
+```php
+// AppKernel::registerBundles()
+$bundles = array(
+    // ...
+        new Hotfix\Bundle\GeoNameBundle\HotfixGeoNameBundle(),
+    // ...
+);
+```
 
 ## Install or update database schema
 
-
 Execute the migrations using the supplied migration configuration
 
-```sh
+```bash
     php bin/console doctrine:schema:update --force
 ```
-
 
 ## Import the data
 
@@ -77,43 +73,34 @@ the [geonames.org][1] export (http://download.geonames.org/export/dump)
 
 Loads a list of all data from [geonames.org][1]
 
-```sh
-    php bin/console Hotfix:geoname:import  --env=prod
+```bash
+    php bin/console hotfix:geoname:import  --env=prod
 ```
 
 ### Options
 
-
 ```
 Usage:
-  Hotfix:geoname:import [options]
+  hotfix:geoname:import [options]
 
 Options:
-  -a, --archive[=ARCHIVE]                   Archive to GeoNames [default: "http://download.geonames.org/export/dump/allCount
-ries.zip"]
-  -t, --timezones[=TIMEZONES]               Timezones file [default: "http://download.geonames.org/export/dump/timeZones.txt
-"]
-  -o, --download-dir[=DOWNLOAD-DIR]         Download dir
-  -h, --help                                Display this help message
-  -q, --quiet                               Do not output any message
-  -V, --version                             Display this application version
-      --ansi                                Force ANSI output
-      --no-ansi                             Disable ANSI output
-  -n, --no-interaction                      Do not ask any interactive question
-  -e, --env=ENV                             The environment name [default: "dev"]
-      --no-debug                            Switches off debug mode
-  -a1, --admin1-codes[=ADMIN1-CODES]        Admin 1 Codes file [default: "http://download.geonames.org/export/dump/admin1Cod
-esASCII.txt"]
-  -a2, --admin2-codes[=ADMIN2-CODES]        Admin 2 Codes file [default: "http://download.geonames.org/export/dump/admin2Cod
-es.txt"]
-  -lc, --languages-codes[=LANGUAGES-CODES]  Admin 2 Codes file [default: "http://download.geonames.org/export/dump/iso-langu
-agecodes.txt"]
-  -v|vv|vvv, --verbose                      Increase the verbosity of messages: 1 for normal output, 2 for more verbose outp
-ut and 3 for debug
-
-Help:
-  Import GeoNames
-
+  -o, --download-dir[=DOWNLOAD-DIR]      Download dir
+  -f, --feature-codes=FEATURE-CODES      Feature-codes files [default: "https://download.geonames.org/export/dump/featureCodes_en.txt"]
+      --skip-feature-codes               options to skip import feature-codes
+  -t, --timezones=TIMEZONES              Timezones files [default: "https://download.geonames.org/export/dump/timeZones.txt"]
+      --skip-timezones                   options to skip import timezones
+  -a1, --admin1=ADMIN1                   Admin1 files [default: "https://download.geonames.org/export/dump/admin1CodesASCII.txt"]
+      --skip-admin1                      options to skip import admin1
+  -a2, --admin2=ADMIN2                   Admin2 files [default: "https://download.geonames.org/export/dump/admin2Codes.txt"]
+      --skip-admin2                      options to skip import admin2
+  -g, --geonames=GEONAMES                Geonames files [default: "https://download.geonames.org/export/dump/allCountries.zip"]
+      --skip-geonames                    options to skip import geonames
+  -c, --countries=COUNTRIES              Countries files [default: "https://download.geonames.org/export/dump/countryInfo.txt"]
+      --skip-countries                   options to skip import countries
+  -i, --hierarchy=HIERARCHY              Hierarchy files [default: "https://download.geonames.org/export/dump/hierarchy.zip"]
+      --skip-hierarchy                   options to skip import hierarchy
+  -l, --alternate-names=ALTERNATE-NAMES  Alternate-names files [default: "https://download.geonames.org/export/dump/alternateNamesV2.zip"]
+      --skip-alternate-names             options to skip import alternate-names
 ```
 
  [1]: http://geonames.org
